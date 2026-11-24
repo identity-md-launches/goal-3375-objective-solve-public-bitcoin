@@ -15,6 +15,7 @@ python3 -B -m unittest discover -s receipt-check/tests -v
 python3 -B receipt-check/audit.py --mode synthetic receipt-check/tests/synthetic_pass.json
 python3 -B receipt-check/audit.py --mode regtest receipt-check/tests/regtest_synthetic_pass.json
 python3 -B receipt-check/audit.py --mode regtest regtest-payment/receipt.json
+python3 -B receipt-check/audit.py --mode regtest regtest-payment/claim_receipt.json
 python3 -B receipt-check/audit.py /path/to/public-mainnet-v1-receipt.json
 ```
 
@@ -26,6 +27,13 @@ and 1,000 sats in fees. The checked-in `regtest-payment/receipt.json` returns
 spend and funding bytes and a valued snapshot. To audit a future version, export
 those bytes and the pre-spend outpoints from the same isolated regtest chain,
 and supply the source and recipient addresses in a v1 receipt.
+
+`regtest-payment/claim_receipt.json` is the newer v1 receipt generated through
+the landed private-claim CLI. It passes explicit `--mode regtest` and fails the
+default mainnet mode. Its paired `claim_evidence.json` carries separate synthetic
+admission and chain observations; `regtest-payment/check_claim.py` generates a
+fresh disposable-node receipt and checks the pair. The byte auditor's PASS still
+leaves `unspent_status` and `confirmation` at `NOT ESTABLISHED`.
 
 ## Receipt v1
 

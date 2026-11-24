@@ -109,9 +109,9 @@ full script/consensus engine or independent attestation that the reported node r
 Actual Core tests provide signature admission and chain checks. The receipt is
 synthetic evidence, never evidence of a production payment.
 
-## Later private-claim harness integration
+## Private-claim integration
 
-The Python entrypoint is:
+The historical `regtest_payment.run` adapter entrypoint is:
 
 ```python
 import regtest_payment
@@ -124,10 +124,41 @@ public prevouts. The default path signs in Core with the fresh `src` wallet. All
 normal post-signing checks still run for an adapter. There is deliberately no CLI
 option accepting a real key, a pre-existing datadir or an external node.
 
-The suite tests the callback boundary with an unsigned transaction that real Core
-rejects. **No private-claim implementation or successful external signer adapter is
-present or claimed tested here.** A later integration must supply its adapter and
-run this harness on an entrant-controlled private machine before production use.
+The separate integrated receipt uses the landed `private-claim/regtest.py` CLI
+directly. It sends the generated scalar 1 and the disposable Core cookie through
+private inherited file descriptors. No signer adapter or production key is used.
+Seven 50,000,000-sat outputs to its fixed synthetic P2PKH source are confirmed
+and saved in a valued pre-spend snapshot with all seven raw funding transactions.
+The CLI signs and broadcasts one exclusive payout to the regtest encoding of the
+required mainnet program. Core admission, mempool presence, active-chain inclusion
+and two confirmations are checked before publication. A competing pending spend
+is excluded by the claim CLI; a corrupted signature is rejected by Core. The run
+also invalidates the spend block, checks that verification fails, then restores
+the original active tip. SIGINT and SIGTERM cleanup are exercised by the acceptance.
+
+Run from the repository root:
+
+```sh
+python3 -I -B regtest-payment/check_claim.py
+python3 -I -B receipt-check/audit.py --mode regtest regtest-payment/claim_receipt.json
+python3 -I -B receipt-check/audit.py --mode mainnet regtest-payment/claim_receipt.json
+python3 -I -B regtest-payment/claim_receipt.py --receipt test/scratch/fresh-receipt.json --evidence test/scratch/fresh-evidence.json
+```
+
+The first two commands exit 0. The mainnet audit exits 1. The generator requires
+the two output paths and produces a fresh chain each time; create `test/scratch`
+first if needed. `claim_receipt.json` is the standalone `receipt-check/v1` byte
+receipt. `claim_evidence.json` holds the synthetic node observations, full funding
+and spend blocks, a two-deep header anchor, and its receipt SHA-256. Byte-policy
+PASS does not establish signature validity, complete UTXO inventory or active-chain
+confirmation by itself. Those gates are checked against disposable Core during
+generation. The public example can be independently checked for byte and header
+consistency, but its deleted regtest chain cannot be observed again.
+
+The delivered example is 350,000,000 sats in, 349,997,836 sats paid, a 2,164-sat
+fee at 1,082 signed vbytes, and depth 2. Its receipt SHA-256 is
+`7b1580efd82a5b80af28f30f16e860b94bb5c00c8e0e20df143059031c9b9694`.
+This is synthetic regtest evidence. The prize objective remains **INCOMPLETE**.
 
 ## Recorded run
 

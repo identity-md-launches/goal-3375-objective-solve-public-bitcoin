@@ -1,0 +1,63 @@
+{
+  "component": "receipt-integration",
+  "baseCommit": "d1a63e8ca03fcd62aa0ab38bf2445569dc3ea6af",
+  "objectiveStatus": "INCOMPLETE",
+  "filesSha256": {
+    "regtest-payment/check_claim.py": "a87002267c46f79e0296da20a9a9ccad85838bf110d943a345ca1263362e5108",
+    "regtest-payment/claim_receipt.py": "b99adbab00cd2f8c0b09f622b01bb67784c7512970589a7104f2d30f23d66c91",
+    "regtest-payment/claim_receipt.json": "7b1580efd82a5b80af28f30f16e860b94bb5c00c8e0e20df143059031c9b9694",
+    "regtest-payment/claim_evidence.json": "62ac64bc1fecd46fbdbfb9fc367c2ff0a73f1e18a77957e3b6b0566aa8b8a7a8",
+    "regtest-payment/README.md": "1159a0270e77f9771f6dc4e157d66392b9f25d16edf82a1f7319ca71181e1328",
+    "receipt-check/README.md": "16ba08b213c6e29e79e02996c9e60f6e636256c6d5eb1a0b6b799afe7a7996f5"
+  },
+  "receipt": {
+    "sha256": "7b1580efd82a5b80af28f30f16e860b94bb5c00c8e0e20df143059031c9b9694",
+    "txid": "2146972b61367c67fe7bc7a5638a1d86bb1b1e65ca38a867f219734fe321ad32",
+    "inputSats": 350000000,
+    "paidSats": 349997836,
+    "feeSats": 2164,
+    "signedVsizeVbytes": 1082,
+    "activeChainDepthBlocks": 2,
+    "sourceOutpoints": 7,
+    "fundingRawTransactions": 7
+  },
+  "commands": [
+    {"command": "python3 -I -B regtest-payment/check_claim.py", "exitCode": 0, "elapsedSeconds": 18.741},
+    {"command": "python3 -I -B receipt-check/audit.py --mode regtest regtest-payment/claim_receipt.json", "exitCode": 0, "byteIntegrity": "PASS"},
+    {"command": "python3 -I -B receipt-check/audit.py --mode mainnet regtest-payment/claim_receipt.json", "exitCode": 1, "byteIntegrity": "FAIL"},
+    {"command": "python3 -B regtest-payment/verify_runtime.py", "exitCode": 0},
+    {"command": "python3 -I -B -m unittest discover -s receipt-check/tests -v", "exitCode": 0, "tests": 17},
+    {"command": "python3 -I -B -m unittest discover -s regtest-payment/tests -v", "exitCode": 0, "tests": 10},
+    {"command": "python3 -I -B private-claim/check_core.py", "exitCode": 0, "offlineTests": 21, "backend": "real synthetic regtest"}
+  ],
+  "gates": {
+    "mock": "NOT USED for integration",
+    "realBackendSynthetic": "PASS: landed private-claim CLI signed and broadcast with FDs",
+    "regtest": "PASS: Core admission, seven valued inputs, sole output, membership and depth",
+    "bytePolicy": "PASS: explicit regtest; mainnet rejected",
+    "negativeCases": "PASS: nine receipt/evidence mutations, pending spend, corrupted signature, active-chain rollback and restoration, SIGINT and SIGTERM cleanup",
+    "production": "NOT RUN"
+  },
+  "measurements": {
+    "generatedReceiptElapsedSeconds": 2.806,
+    "generatorPythonMaxRssKiB": 79300,
+    "acceptanceElapsedSeconds": 18.741,
+    "runtimeInstalledBytes": 19008016,
+    "runtimeCompressedBytes": 6791540
+  },
+  "runtime": {
+    "coreVersion": "28.1",
+    "manifest": "regtest-payment/runtime/manifest.json",
+    "license": "regtest-payment/runtime/COPYING",
+    "pin": "32efe850438ef22e2de39e562af557872a402c31",
+    "downloadsDuringMandatoryChecks": 0
+  },
+  "failuresRepaired": [
+    "The first acceptance attempt used -I with the pre-existing verify_runtime.py, which omits an isolated import path; the check now invokes that retained script with -B.",
+    "The first mutation changed a trailing 00 byte to 00 and did not alter the transaction; it now changes the locktime byte to 01.",
+    "After invalidateblock/reconsiderblock, Core can report initialblockdownload true even after restoring the tip; the recovery check now uses Core's active block and raw transaction confirmations."
+  ],
+  "unavailablePrerequisites": ["No real Puzzle #140 private key was recovered or supplied; production search, mainnet UTXO inventory, signing, broadcast and confirmation were not run."],
+  "limitations": ["The auditor verifies byte consistency but not ECDSA signatures or a full UTXO set. The regtest node validates signatures and chain state during generation; its datadir is deleted, so the public receipt is a synthetic historical example."],
+  "restartCommand": "python3 -I -B regtest-payment/check_claim.py"
+}
