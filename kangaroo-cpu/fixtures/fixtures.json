@@ -81,6 +81,76 @@
    "end": "39e98c8593d453",
    "pubkey": "02e2b76defec77488d14b8d764992257d399a6a16e885bf8c160d3346860e481f4",
    "synthetic_key": "39c42de0f79710"
+  },
+  {
+   "label": "SYNTHETIC-w0-singleton",
+   "seed": "kangaroo-cpu-fixtures-v1",
+   "width_bits": 0,
+   "where": "start",
+   "start": "ee",
+   "end": "ee",
+   "pubkey": "030659214ac1a1790023f53c4cf55a0a63b9e20c1151efa971215b395a558aa151",
+   "synthetic_key": "ee"
+  },
+  {
+   "label": "SYNTHETIC-w12-start-plus-one",
+   "seed": "kangaroo-cpu-fixtures-v1",
+   "width_bits": 12,
+   "where": "start1",
+   "start": "84ba2",
+   "end": "85ba1",
+   "pubkey": "02623e878ba1768782b9bab4ecfbdc39890d6b06dc3f43666d6ecd58ae92ff1357",
+   "synthetic_key": "84ba3"
+  },
+  {
+   "label": "SYNTHETIC-w16-end-minus-one",
+   "seed": "kangaroo-cpu-fixtures-v1",
+   "width_bits": 16,
+   "where": "end1",
+   "start": "e9e02e",
+   "end": "eae02d",
+   "pubkey": "022360c5a68bfe683a28903f97b5e5fd84cc4621ae035e6a057ced7d96efe19037",
+   "synthetic_key": "eae02c"
+  },
+  {
+   "label": "SYNTHETIC-w24-high-offset-near-n-start-endpoint",
+   "seed": "kangaroo-cpu-fixtures-v1",
+   "width_bits": 24,
+   "where": "start",
+   "start": "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8ccf3639ca",
+   "end": "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd03639c9",
+   "pubkey": "031aee589e72ff6338e6042e63fe1ab8cdc47f12f326b5b3ba5ea1337dd0beb411",
+   "synthetic_key": "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8ccf3639ca"
+  },
+  {
+   "label": "SYNTHETIC-w40-thread-kat",
+   "seed": "kangaroo-cpu-fixtures-v1",
+   "width_bits": 40,
+   "where": "random",
+   "start": "9d8d1b7fa195",
+   "end": "9e8d1b7fa194",
+   "pubkey": "03da092341a0cb3d471797634206eaa59ffec29edf38830c40344d9a9c743b531a",
+   "synthetic_key": "9e56e860601d"
+  },
+  {
+   "label": "SYNTHETIC-w56-rate-bounded",
+   "seed": "kangaroo-cpu-fixtures-v1",
+   "width_bits": 56,
+   "where": "random",
+   "start": "38fba28f5d8da5cc",
+   "end": "39fba28f5d8da5cb",
+   "pubkey": "02a5bcb6815720fb6f73e10b503a53b8fa5238c37455e5e5d306ebf85deac4dce4",
+   "synthetic_key": "39a10fb6e684b111"
+  },
+  {
+   "label": "SYNTHETIC-w50-save-resume",
+   "seed": "kangaroo-cpu-fixtures-v1",
+   "width_bits": 50,
+   "where": "random",
+   "start": "3d5325ec41083b2",
+   "end": "3d9325ec41083b1",
+   "pubkey": "03eb2f6b6b635e20ba95f78e93035874ba88a189118a02c4c9f12513c32818d458",
+   "synthetic_key": "3d5be5ffd470c81"
   }
  ]
 }

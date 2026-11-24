@@ -15,7 +15,8 @@ SRCS = ["SECPK1/IntGroup.cpp", "main.cpp", "SECPK1/Random.cpp", "Timer.cpp", "SE
         "SECPK1/IntMod.cpp", "SECPK1/Point.cpp", "SECPK1/SECP256K1.cpp", "Kangaroo.cpp",
         "HashTable.cpp", "Thread.cpp", "Check.cpp", "Backup.cpp", "Network.cpp", "Merge.cpp",
         "PartMerge.cpp"]
-CXXFLAGS = ["-m64", "-mssse3", "-Wno-unused-result", "-Wno-write-strings", "-O2", "-I."]
+CXXFLAGS = ["-m64", "-mssse3", "-Wno-unused-result", "-Wno-write-strings", "-O2", "-I.",
+            "-ffile-prefix-map=.=kcpu-src"]
 
 
 def sha256(path):
@@ -36,6 +37,9 @@ def main():
     ap.add_argument("--out", required=True, help="build directory (outside the repo or disposable)")
     ap.add_argument("--cxx", default=os.environ.get("CXX", "g++"), help="C++ compiler command")
     ap.add_argument("--jobs", type=int, default=2)
+    ap.add_argument("--static", action="store_true", help="link statically (-static, stripped): the vendored-binary recipe")
+    ap.add_argument("--exclude-patch", action="append", default=[],
+                    help="skip a patch by file name (reproduction builds only, e.g. 0003-start-endpoint-infinity.patch)")
     a = ap.parse_args()
     prov = json.load(open(os.path.join(HERE, "PROVENANCE.json")))
     up = os.path.join(HERE, "upstream")
@@ -59,6 +63,8 @@ def main():
         shutil.rmtree(src)
     shutil.copytree(up, src)
     for rel in sorted(prov["patches_sha256"]):
+        if rel in a.exclude_patch:
+            continue
         r = subprocess.run(["patch", "-p1", "--forward", "-i", os.path.join(HERE, "patches", rel)],
                            cwd=src, capture_output=True, text=True)
         if r.returncode:
@@ -79,11 +85,13 @@ def main():
                 die("compile %s failed (exit %d):\n%s" % (f, r.returncode, r.stderr[-4000:]))
             objs.append(o)
     exe = os.path.join(out, "kangaroo")
-    r = subprocess.run(cxx + objs + ["-lpthread", "-o", exe], capture_output=True, text=True)
+    ldflags = ["-static", "-s"] if a.static else []
+    r = subprocess.run(cxx + objs + ldflags + ["-lpthread", "-o", exe], capture_output=True, text=True)
     if r.returncode:
         die("link failed:\n" + r.stderr[-4000:])
     print(json.dumps({"binary": exe, "sha256": sha256(exe), "cxx": a.cxx,
-                      "cxxflags": CXXFLAGS, "build_seconds": round(time.time() - t0, 2)}))
+                      "cxxflags": CXXFLAGS, "static": a.static,
+                      "patches": [p for p in sorted(prov["patches_sha256"]) if p not in a.exclude_patch], "build_seconds": round(time.time() - t0, 2)}))
 
 
 if __name__ == "__main__":

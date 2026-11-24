@@ -23,7 +23,7 @@ class Pure(unittest.TestCase):
             self.assertTrue(kcpu.verify_answer(c, c["synthetic_key"]), c["label"])
             s, e, k = (int(c[x], 16) for x in ("start", "end", "synthetic_key"))
             self.assertEqual(e - s, 2**c["width_bits"] - 1)
-            self.assertEqual(k, {"start": s, "end": e}.get(c["where"], k))
+            self.assertEqual(k, {"start": s, "end": e, "start1": s + 1, "end1": e - 1}.get(c["where"], k))
             kcpu.check_target(s, e, c["pubkey"])
 
     def test_verify_rejects_wrong(self):
@@ -58,6 +58,8 @@ class Pure(unittest.TestCase):
             self.assertEqual(hashlib.sha256(open(os.path.join(HERE, "upstream", rel), "rb").read()).hexdigest(), h, rel)
         for rel, h in p["patches_sha256"].items():
             self.assertEqual(hashlib.sha256(open(os.path.join(HERE, "patches", rel), "rb").read()).hexdigest(), h, rel)
+        vb = p["vendored_binary"]
+        self.assertEqual(hashlib.sha256(open(os.path.join(HERE, vb["path"]), "rb").read()).hexdigest(), vb["sha256"])
         self.assertIn("GNU GENERAL PUBLIC LICENSE", open(os.path.join(HERE, "upstream", "LICENSE.txt")).read())
 
 
@@ -73,7 +75,9 @@ class Integration(unittest.TestCase):
             r = self.run_case(lab, max_step=8.0, timeout=120)
             self.assertTrue(r["verified"], r); self.assertGreater(r["session_group_ops"], 0)
 
-    def test_start_endpoint_known_failure(self):
-        # Upstream finding: key == interval start is not found (bounded by -m 2, recorded in MEASUREMENTS).
-        r = self.run_case("SYNTHETIC-w28-high-offset-2^255", max_step=2.0, timeout=120)
-        self.assertFalse(r["solved"]); self.assertTrue(r["aborted"])
+    def test_start_endpoint_resolved(self):
+        # Formerly failed upstream (K - start.G = point at infinity); patch 0003 resolves it with 0 walk ops.
+        for lab in ("SYNTHETIC-w28-high-offset-2^255", "SYNTHETIC-w36-start-endpoint", "SYNTHETIC-w0-singleton"):
+            r = self.run_case(lab, max_step=2.0, timeout=120)
+            self.assertTrue(r["verified"], r); self.assertTrue(r["endpoint_resolved"], r)
+            self.assertEqual(r["session_group_ops"], 0)

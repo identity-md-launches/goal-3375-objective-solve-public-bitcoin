@@ -1,0 +1,10 @@
+--- a/Timer.h
++++ b/Timer.h
+@@ -18,6 +18,7 @@
+ #ifndef TIMERH
+ #define TIMERH
+ 
++#include <cstdint> /* kangaroo-cpu patch 0004: GCC >= 13 no longer pulls uint32_t in transitively */
+ #include <time.h>
+ #include <string>
+ #ifdef WIN64

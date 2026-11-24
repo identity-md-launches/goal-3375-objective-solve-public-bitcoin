@@ -68,16 +68,31 @@
  },
  "patches_sha256": {
   "0001-clang-compat.patch": "c6ec39714e118ae1af8496bd339ed2d94d2387a9df6ab945dc02cbd99d7cb562",
-  "0002-exact-group-op-count.patch": "4532ca7145d33c8905701136de5d62ed29c2ea332420c380bb1e7e33388c72c6"
+  "0002-exact-group-op-count.patch": "4532ca7145d33c8905701136de5d62ed29c2ea332420c380bb1e7e33388c72c6",
+  "0003-start-endpoint-infinity.patch": "219f8c71723dced0b291326b1496b702fa7be47ec46c9679ed964f700c2962aa",
+  "0004-gcc13-cstdint.patch": "f88cda64467db9f1e8d870c80f81345f9726e6ca17f1e17dc0cc74e7f552cf4a"
  },
  "patch_notes": {
   "0001-clang-compat.patch": "guards GCC-only __rdtsc/_subborrow_u64/_addcarry_u64 shims under !__clang__ and uses ::bind; no arithmetic change",
-  "0002-exact-group-op-count.patch": "prints exact per-key jump counters ([KCPU-COUNT]) after threads join; no search change"
+  "0002-exact-group-op-count.patch": "prints exact per-key jump counters ([KCPU-COUNT]) after threads join; no search change",
+  "0003-start-endpoint-infinity.patch": "resolves key == shifted start point (K - SP.G = point at infinity, AddDirect dx=0) exactly via Output() re-derivation with zero walk ops; redraws zero herd start distances and wild starts whose x equals keyToSearch.x (bounded) so batched inversions are not poisoned; range/width checks untouched",
+  "0004-gcc13-cstdint.patch": "adds #include <cstdint> to Timer.h (GCC 13 build error Timer.h:36 'uint32_t' has not been declared); no behaviour change"
  },
  "toolchain_used_for_measurements": {
-  "name": "zig 0.13.0 (bundled clang 18) as `zig c++ -target x86_64-linux-gnu`",
-  "url": "https://ziglang.org/download/0.13.0/zig-linux-x86_64-0.13.0.tar.xz",
-  "sha256": "d45312e61ebcc48032b77bc4cf7fd6915c11fa16e4aad116b66c9468211230ea",
-  "note": "not vendored; host had no gcc/g++/clang/make"
+  "name": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "note": "system g++ on the measuring host; earlier zig 0.13.0 toolchain is no longer used or needed"
+ },
+ "vendored_binary": {
+  "path": "bin/kangaroo-linux-x86_64-static",
+  "sha256": "781464cc2414527421bd88dd2604118aa9ab4fae5199a25acc8ab7ddc4d942a8",
+  "bytes": 2278728,
+  "format": "ELF x86-64, statically linked (no shared-library or toolchain dependency at run time), stripped",
+  "built_from": "upstream/ at the pinned commit + patches 0001..0004 (all patches_sha256 entries)",
+  "recipe": "python3 -I kangaroo-cpu/build.py --out \"$TMPDIR/kcpu-build\" --jobs 4 --static && cp \"$TMPDIR/kcpu-build/kangaroo\" kangaroo-cpu/bin/kangaroo-linux-x86_64-static",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "libc": "ldd (Ubuntu GLIBC 2.39-0ubuntu8.9) 2.39 (static glibc; Network.cpp getaddrinfo/gethostbyname link warnings concern only the -s/-c server/client modes, which this comparator never uses)",
+  "cxxflags": "-m64 -mssse3 -Wno-unused-result -Wno-write-strings -O2 -I. -ffile-prefix-map=.=kcpu-src ; link: -static -s -lpthread",
+  "reproducibility": "A fresh build.py --static on the measuring host (g++ 13.3.0, static glibc 2.39) reproduced the identical sha256 (check_offline.py --rebuild: same_hash_as_vendored=true). Other compiler/libc versions may differ bit-wise; --rebuild then compares behaviour (KATs), not hash.",
+  "license": "GPL-3.0 (derived work of upstream; corresponding source = upstream/ + patches/ in this directory)"
  }
 }

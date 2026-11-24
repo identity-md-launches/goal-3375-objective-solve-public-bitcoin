@@ -76,7 +76,8 @@ def make_fixture(seed, label, width_bits, offset=None, where="random"):
     width = 2**width_bits - 1
     start = offset if offset is not None else (2**width_bits + h("off") % 2**(width_bits + 8))
     end = start + width
-    k = {"start": start, "end": end, "random": start + h("k") % (width + 1)}[where]
+    k = {"start": start, "end": end, "start1": start + 1, "end1": end - 1,
+         "random": start + h("k") % (width + 1)}[where]
     pub = compress(mul(k))
     return {"label": "SYNTHETIC-" + label, "seed": seed, "width_bits": width_bits, "where": where,
             "start": "%x" % start, "end": "%x" % end, "pubkey": pub, "synthetic_key": "%x" % k}
@@ -105,7 +106,9 @@ def storage_root():
 
 
 def run_job(binary, fx, threads=1, dp=None, max_step=8.0, timeout=600, extra=(), workdir=None,
-            kill_after=None, keep=False):
+            kill_after=None, keep=False, kill_after_file=None):
+    """kill_after_file=(path, delay): SIGKILL `delay` s after `path` first exists non-empty and
+    no earlier than kill_after (interruption test that is guaranteed a saved work file)."""
     """Run one bounded synthetic job; returns a measurement dict (no key material)."""
     _guard(fx)
     binary = os.path.abspath(binary)
@@ -123,14 +126,26 @@ def run_job(binary, fx, threads=1, dp=None, max_step=8.0, timeout=600, extra=(),
         t0 = time.monotonic()
         pr = subprocess.Popen(cmd, cwd=wd, stdout=s, stderr=s, stdin=subprocess.DEVNULL)
         os.close(s)
-        buf, t_thread, killed = b"", None, False
+        buf, t_thread, killed, t_file, hwm = b"", None, False, None, None
         while True:
             el = time.monotonic() - t0
-            if kill_after is not None and not killed and el > kill_after:
+            if kill_after_file is not None:
+                if t_file is None and os.path.exists(kill_after_file[0]) and os.path.getsize(kill_after_file[0]) > 0:
+                    t_file = el
+                if not killed and t_file is not None and el > max(t_file + kill_after_file[1], kill_after or 0):
+                    pr.send_signal(signal.SIGKILL); killed = True
+            elif kill_after is not None and not killed and el > kill_after:
                 pr.send_signal(signal.SIGKILL); killed = True
             if el > timeout and not killed:
                 pr.send_signal(signal.SIGKILL); killed = True
-            r, _, _ = select.select([m], [], [], 0.2)
+            try:  # VmHWM is per address space (reset at exec), unlike ru_maxrss which keeps the parent's fork-time peak
+                with open("/proc/%d/status" % pr.pid) as st:
+                    for ln in st:
+                        if ln.startswith("VmHWM:"):
+                            hwm = max(hwm or 0, int(ln.split()[1]))
+            except (OSError, ValueError):
+                pass
+            r, _, _ = select.select([m], [], [], 0.1)
             if r:
                 try: chunk = os.read(m, 65536)
                 except OSError: chunk = b""
@@ -156,12 +171,14 @@ def run_job(binary, fx, threads=1, dp=None, max_step=8.0, timeout=600, extra=(),
                "elapsed_total_s": round(elapsed, 3),
                "time_to_first_thread_start_s": None if t_thread is None else round(t_thread, 3),
                "search_s_after_thread_start": None if t_thread is None else round(elapsed - t_thread, 3),
-               "peak_rss_kib_task_process": ru.ru_maxrss, "cpu_user_s": round(ru.ru_utime, 3),
+               "peak_rss_kib_task_process": ru.ru_maxrss,
+               "vmhwm_kib_sampled": hwm, "cpu_user_s": round(ru.ru_utime, 3),
                "cpu_sys_s": round(ru.ru_stime, 3),
                "session_group_ops": int(cnt[-1][0]) if cnt else None,
                "offset_group_ops_from_workfile": int(cnt[-1][2]) if cnt else None,
                "solved": found is not None, "verified": bool(found) and verify_answer(fx, found),
-               "aborted": "Aborted" in log}
+               "aborted": "Aborted" in log,
+               "endpoint_resolved": bool(re.search(r"\[KCPU-ENDPOINT\] key=\d+ resolved=start verified=1", log))}
         for k, pat in (("range_width_log2", r"Range width: 2\^(\d+)"), ("dp_used", r"DP size: (\d+)"),
                        ("expected_ops_log2", r"Expected operations: 2\^([\d.]+)"),
                        ("fetch_kangaroos", r"FectchKangaroos: (.*)"), ("loaded_header", r"ReadHeader: .*(\[.*\])")):

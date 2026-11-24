@@ -14,6 +14,13 @@ CASES = [  # (label, width_bits, offset, where)
     ("w28-high-offset-2^255", 28, 2**255 + 0xABCDEF, "start"),
     ("w44-thread-scaling", 44, None, "random"),
     ("w46-save-resume", 46, None, "random"),
+    ("w0-singleton", 0, None, "start"),
+    ("w12-start-plus-one", 12, None, "start1"),
+    ("w16-end-minus-one", 16, None, "end1"),
+    ("w24-high-offset-near-n-start-endpoint", 24, N - 2**24 - 0x777, "start"),
+    ("w40-thread-kat", 40, None, "random"),
+    ("w56-rate-bounded", 56, None, "random"),
+    ("w50-save-resume", 50, None, "random"),
 ]
 def build():
     return {"seed": SEED, "note": "SYNTHETIC known-answer fixtures; synthetic_key is generated, never a real key",

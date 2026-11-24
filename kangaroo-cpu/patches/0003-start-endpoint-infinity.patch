@@ -1,0 +1,98 @@
+--- a/Kangaroo.h
++++ b/Kangaroo.h
+@@ -250,6 +250,9 @@
+   std::vector<Point> keysToSearch;
+   Point keyToSearch;
+   Point keyToSearchNeg;
++  /* kangaroo-cpu patch 0003: set when the key equals the shifted start point */
++  bool startEndpointHit;
++  Int startEndpointKey;
+   uint32_t keyIdx;
+   bool endOfSearch;
+   bool useGpu;
+--- a/Kangaroo.cpp
++++ b/Kangaroo.cpp
+@@ -681,6 +681,7 @@
+   // Choose random starting distance
+   if(lock) LOCK(ghMutex);
+ 
++  int zeroRedraw = 0; /* kangaroo-cpu patch 0003: bounded redraws */
+   for(uint64_t j = 0; j<nbKangaroo; j++) {
+ 
+ #ifdef USE_SYMMETRY
+@@ -703,6 +704,10 @@
+ 
+ #endif
+ 
++    /* kangaroo-cpu patch 0003: a zero start distance yields the point at
++       infinity (z = 0), which poisons the batched inversion of the whole herd */
++    if(d[j].IsZero() && rangePower > 1 && zeroRedraw < 1024) { zeroRedraw++; j--; continue; }
++
+     pk.push_back(d[j]);
+ 
+   }
+@@ -712,6 +717,25 @@
+   // Compute starting pos
+   S = secp->ComputePublicKeys(pk);
+ 
++  /* kangaroo-cpu patch 0003: a wild start d.G with the x of keyToSearch gives
++     dx = 0 in the batched AddDirect below (infinity or doubling); redraw it */
++  for(uint64_t j = 0; j<nbKangaroo; j++) {
++    for(int att = 0; att < 64 && (j + firstType) % 2 == WILD && S[j].x.IsEqual(&keyToSearch.x); att++) {
++      if(lock) LOCK(ghMutex);
++#ifdef USE_SYMMETRY
++      d[j].Rand(rangePower - 1);
++      d[j].ModSubK1order(&rangeWidthDiv4);
++#else
++      d[j].Rand(rangePower);
++      d[j].ModSubK1order(&rangeWidthDiv2);
++#endif
++      if(lock) UNLOCK(ghMutex);
++      if(d[j].IsZero()) continue;
++      pk[j].Set(&d[j]);
++      S[j] = secp->ComputePublicKey(&d[j]);
++    }
++  }
++
+   for(uint64_t j = 0; j<nbKangaroo; j++) {
+     if((j + firstType) % 2 == TAME) {
+       Sp.push_back(Z);
+@@ -896,10 +920,20 @@
+ #ifdef USE_SYMMETRY
+   SP.ModAddK1order(&rangeWidthDiv2);
+ #endif
++  startEndpointHit = false;
+   if(!SP.IsZero()) {
+     Point RS = secp->ComputePublicKey(&SP);
+-    RS.y.ModNeg();
+-    keyToSearch = secp->AddDirect(keysToSearch[keyIdx],RS);
++    if(RS.equals(keysToSearch[keyIdx])) {
++      /* kangaroo-cpu patch 0003: K == SP.G makes K - SP.G the point at infinity,
++         which AddDirect cannot represent (dx = 0, ModInv(0)). Resolve it exactly
++         here (Output re-derives the public key) instead of walking garbage. */
++      startEndpointHit = true;
++      startEndpointKey.Set(&SP);
++      keyToSearch = keysToSearch[keyIdx]; /* never walked */
++    } else {
++      RS.y.ModNeg();
++      keyToSearch = secp->AddDirect(keysToSearch[keyIdx],RS);
++    }
+   } else {
+     keyToSearch = keysToSearch[keyIdx];
+   }
+@@ -1022,6 +1056,15 @@
+ 
+       InitSearchKey();
+ 
++      if(startEndpointHit) {
++        /* kangaroo-cpu patch 0003: start endpoint resolved without a walk */
++        bool okEp = Output(&startEndpointKey,'E',0);
++        ::printf("\n[KCPU-ENDPOINT] key=%d resolved=start verified=%d\n",keyIdx,okEp ? 1 : 0);
++        ::printf("\n[KCPU-COUNT] key=%d session_group_ops=0 cpu_group_ops=0 offset_group_ops=%.0f\n",
++                 keyIdx,(double)offsetCount);
++        continue;
++      }
++
+       endOfSearch = false;
+       collisionInSameHerd = 0;
+ 
