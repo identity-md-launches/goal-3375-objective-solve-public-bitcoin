@@ -30,3 +30,14 @@ The production public key, interval, challenge address, and recipient originate
 in the task brief. Local tests independently check their mathematical/address
 consistency. This component makes no assertion about current chain balances or
 the challenge's historical announcement. No RPC or block explorer was queried.
+
+The integration check additionally uses the landed [secp-oracle](../secp-oracle/README.md)
+libsecp256k1 source, commit `0cdc758a56360bf58a851fe91085a327ec97685a`,
+BSD-3-Clause license in `secp-oracle/vendor/secp256k1/COPYING` and file pins in
+`secp-oracle/vendor.sha256`. `oracle-fixtures.json` contains only synthetic
+points generated locally by that native library for this integration check;
+its SHA-256 is `b0975d21d420910aeb2b27ce0a01761e4b1213a91d1d538a5d09e663b038545b`.
+The mandatory offline check verifies the pins and fixtures without requiring a
+compiler. To additionally compare every fixture against a newly built native
+library, set `PRIVATE_SEARCH_ORACLE_SO` to its absolute path before invoking the
+same check. The fixture-only mode is not a live native-backend run.

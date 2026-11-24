@@ -17,6 +17,7 @@ The implementation is original; reviewed references are pinned in [SOURCES.md](S
 Run from the checkout root:
 
 ```sh
+python3 -I -B private-search/check_integration.py
 python3 -I -B -m unittest discover -s private-search/tests -v
 python3 -I -B private-search/run.py
 python3 -I -B private-search/bench.py --scratch test/scratch/private-search-bench --output private-search/benchmarks.json
@@ -56,13 +57,13 @@ not silently change them.
 ```sh
 task_checkout=/absolute/path/to/checkout
 task_private=/absolute/path/outside/checkout/puzzle140-cpu
-python3 -I -B "$task_checkout/private-search/launch.py" --mode real --entrant-controlled --private-dir "$task_private" --seed entrant-v1 --worker-id cpu-001 --generation 0 --dp-bits 20 --max-records 10000 --max-steps 100000 --max-seconds 60 --checkpoint-steps 1000 --export-dp
+python3 -I -B "$task_checkout/private-search/launch.py" --mode real --entrant-controlled --private-dir "$task_private" --seed entrant-v1 --worker-id cpu-001 --generation 0 --dp-bits 61 --max-records 10000 --max-steps 100000 --max-seconds 60 --checkpoint-steps 1000 --export-dp
 ```
 
-Resume with the same manifest, seed, worker ID, generation, DP bits, and record cap:
+Resume with the same manifest, seed, worker ID, generation, DP bits, and record cap (or a larger cap after saturation):
 
 ```sh
-python3 -I -B "$task_checkout/private-search/launch.py" --mode real --entrant-controlled --private-dir "$task_private" --seed entrant-v1 --worker-id cpu-001 --generation 0 --dp-bits 20 --max-records 10000 --max-steps 100000 --max-seconds 60 --checkpoint-steps 1000 --export-dp --resume
+python3 -I -B "$task_checkout/private-search/launch.py" --mode real --entrant-controlled --private-dir "$task_private" --seed entrant-v1 --worker-id cpu-001 --generation 0 --dp-bits 61 --max-records 10000 --max-steps 100000 --max-seconds 60 --checkpoint-steps 1000 --export-dp --resume
 ```
 
 These are finite per-invocation budgets, not an estimate that this CPU can solve
@@ -134,10 +135,28 @@ does not contain a separately formatted candidate key. Collision evidence can
 reveal the key and is therefore private. Resume validates point/distance equations
 and every retained record before accepting the state. Checkpoint SHA-256 detects
 corruption; it is not an authentication code against someone who can modify the
-private directory. A record cap stops the run with `memory_limit`; it never
-silently evicts DPs. Resume retains that cap and state. A coordinator can consume
-the private DP snapshot, or the entrant can start a new generation in a new
-directory with a different cap. There is no automatic infinite retry loop.
+private directory. A record cap stops the run with `memory_limit`; it never silently evicts DPs.
+The distinguished point that reached the cap is the most recently advanced live
+walk, retained in the checkpoint even though it is not yet in the table or DP
+export. Existing `kangaroo-state@1` saturated checkpoints use the same encoding.
+Restore validates the pending point and does not advance it. Resume with the same
+parameters and a larger `--max-records` inserts that point before the next step;
+keep `--dp-bits` explicit when increasing capacity. Only a saturated checkpoint
+accepts a larger cap, up to 100,000 records; the 64 MiB checkpoint limit also
+applies. At that ceiling the run remains honestly saturated: retain the private
+checkpoint, arrange an independently implemented lossless store/coordinator, or
+start another generation; this engine cannot itself continue that walk beyond
+the ceiling. A coordinator must not assume the exported table includes the pending
+point. There is no automatic infinite retry loop.
+
+`density_plan(width, max_records)` models eight times ceil(sqrt(width)) aggregate
+steps and chooses `dpBits` so the independent-uniform-hash expected DP visits
+are at most half the cap. For width 2^139 and 10,000 records this gives 61 bits;
+production defaults use this model, and explicit values 0..256 are accepted.
+This is only a sizing heuristic, not a bound on runtime, collision probability,
+actual records, memory, or chance of solving. Walk correlations, uneven work,
+multiple workers and runs longer than the model can saturate it. Sparse DPs can
+also delay collision detection. Measure and plan for each private deployment.
 
 Private storage uses descriptor-relative opens, `O_NOFOLLOW`, exclusive locks,
 same-directory temporary files, `fsync`, atomic replacement, and directory
@@ -235,3 +254,10 @@ built or run. No GPU capability was assumed or probed. There is no measured GPU
 comparison, no production throughput claim, and no extrapolated completion
 promise. Production execution, adversarial host security, claiming/regtest,
 live UTXO verification, and confirmed payment remain untested in this component.
+
+The integration command uses pinned synthetic points generated with the landed
+native secp-oracle; see [SOURCES.md](SOURCES.md) for provenance. It reports when
+only fixtures were checked. Setting `PRIVATE_SEARCH_ORACLE_SO` to an independently
+built copy of the oracle library also checks every fixture against the live native
+backend. The full-width initialization check uses a generated synthetic point and
+mocks manifest validation only; it does not execute production walks.

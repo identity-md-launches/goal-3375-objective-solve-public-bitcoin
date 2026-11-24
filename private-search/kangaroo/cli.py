@@ -12,8 +12,8 @@ import sys
 import time
 
 from . import VERSION
-from .engine import Engine
-from .manifest import LOWER, PRODUCTION, canonical, synthetic_manifest, validate_manifest
+from .engine import Engine, density_plan
+from .manifest import LOWER, UPPER, PRODUCTION, canonical, synthetic_manifest, validate_manifest
 from .secp256k1 import Operations
 from .storage import CandidateSink, PrivateDirectory, strict_json
 
@@ -69,7 +69,7 @@ def validate_args(args, require_sink=True):
     if not 1 <= args.checkpoint_steps <= 10**12:
         raise ValueError("invalid checkpoint bound")
     if args.dp_bits is None:
-        args.dp_bits = 20 if real else 0
+        args.dp_bits = density_plan(UPPER - LOWER + 1, args.max_records)["dpBits"] if real else 0
 
 
 def harden_process():
@@ -132,10 +132,16 @@ def execute(args):
                   "dpBits": args.dp_bits, "maxRecords": args.max_records}
         if args.resume:
             state = store.load()
-            if state.get("config") != config:
+            saved_config = state.get("config")
+            if (type(saved_config) is not dict or
+                    any(saved_config.get(k) != v for k, v in config.items() if k != "maxRecords") or
+                    type(saved_config.get("maxRecords")) is not int or
+                    args.max_records < saved_config["maxRecords"]):
                 raise ValueError("resume parameters mismatch")
             engine = Engine.restore(state, manifest, production_authorized=real, setup_ops=setup_ops,
                                     stopped=lambda: stopped[0] or time.monotonic() - started >= args.max_seconds)
+            if args.max_records > saved_config["maxRecords"]:
+                engine.increase_capacity(args.max_records)
         else:
             if store is not None and store.exists("checkpoint.json"):
                 raise ValueError("existing checkpoint requires explicit resume")

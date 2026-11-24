@@ -1,0 +1,72 @@
+{
+  "baseCommit": "0992632e39cd0624c0ead76e9e4ab6f176fb07c5",
+  "commands": [
+    {
+      "command": "python3 -I -B -m unittest discover -s private-search/tests -q",
+      "exitCode": 0,
+      "tests": 41
+    },
+    {
+      "command": "python3 -I -B -m unittest discover -s candidate-check/tests -q",
+      "exitCode": 0,
+      "tests": 40
+    },
+    {
+      "command": "PRIVATE_SEARCH_ORACLE_SO=<scratch native oracle> python3 -I -B private-search/check_integration.py",
+      "exitCode": 0,
+      "processPeakRssKiB": 28664,
+      "tests": "41 + 40 + 5; live native libsecp256k1 synthetic oracle",
+      "wallSeconds": 35.097
+    },
+    {
+      "command": "python3 -I -B private-search/check_integration.py",
+      "exitCode": 0,
+      "processPeakRssKiB": 28544,
+      "tests": "41 + 40 + 5; pinned native-generated fixtures, no live oracle",
+      "wallSeconds": 41.15
+    }
+  ],
+  "component": "search-engine",
+  "failures": [
+    "Initial integration run exit 1: check_integration.py setUpClass could not find cc; repaired with pinned native-generated offline fixtures and optional live backend.",
+    "Initial native run exit 1: test_oracle_and_candidate_boundary used invalid synthetic label, and test_cli_resume_after_capacity_increase and test_saturation_resume_and_interrupt used insufficient 1000-record capacity; corrected label and capacity.",
+    "apt-get update exit 100: sandbox could not change identity; retry blocked by package mirror network policy. Scratch Zig compiler used instead.",
+    "Initial scratch compiler extraction exit 2 because tar could not change ownership; --no-same-owner repaired it."
+  ],
+  "filesSha256": {
+    "private-search/README.md": "32f0feba9a39355134415715dafcd6b35c701ed19473db4fc6a8ebe45b98fa1f",
+    "private-search/SOURCES.md": "2363e52a984a0262032248bb1d11f255a0d06a18425d7d00d5ebb54eb19c76ed",
+    "private-search/check_integration.py": "041636fd36f300fa57c387c59c12774f45bd3222c7ac21ed09652ed9e576df14",
+    "private-search/kangaroo/cli.py": "c8bd6c2be17df2b6187ea2e95a0331881a9fea1dff0cb194cf3bc447d7af3f22",
+    "private-search/kangaroo/engine.py": "f38c45b88677c117b9d2014198bd5bea27439342df5041f5cbaa73afaa30ae63",
+    "private-search/oracle-fixtures.json": "b0975d21d420910aeb2b27ce0a01761e4b1213a91d1d538a5d09e663b038545b"
+  },
+  "gates": {
+    "confirmedPrizePayment": "not run",
+    "engineAndCandidateSuites": "pass",
+    "fullWidthInitialization": "mock validator with synthetic point, pass; no production walk",
+    "offlineFixtureIntegration": "pass",
+    "productionSearch": "not run",
+    "realBackendSynthetic": "pass",
+    "regtest": "not run"
+  },
+  "hashNote": "Report excludes its own hash; artifact result is delivered separately.",
+  "objectiveStatus": "INCOMPLETE",
+  "restartCommand": "python3 -I -B private-search/check_integration.py",
+  "syntheticMeasurement": {
+    "dpBits": 0,
+    "dpVisits": 1204,
+    "meaning": "process high-water mark; single synthetic trial, not a production throughput estimate",
+    "processPeakRssKiB": 17664,
+    "retainedRecords": 1203,
+    "seed": "integration-v1",
+    "solveWallSeconds": 0.14258846268057823,
+    "steps": 1202,
+    "stepsPerSecond": 8429.85,
+    "width": 65536
+  },
+  "unavailablePrerequisites": [
+    "No system C compiler; native test built locally in scratch with downloaded compiler; mandatory offline check uses pinned fixture fallback.",
+    "Production search, live UTXO verification, claim and regtest are outside this bounded component and were not run."
+  ]
+}

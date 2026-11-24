@@ -12,6 +12,26 @@ import time
 from .manifest import canonical, decimal, digest, identifier, validate_manifest
 from .secp256k1 import N, Operations, add, decode, encode, multiply, reference_multiply
 
+def density_plan(width, max_records, effort_factor=8):
+    """Heuristic only: expected DPs for effort_factor*ceil(sqrt(width)) steps.
+
+    A half-capacity target leaves headroom, not a probabilistic guarantee. Walk
+    correlations, cycles and uneven work can invalidate the independent hash model.
+    """
+    if type(width) is not int or width < 1 or type(max_records) is not int or not 2 <= max_records <= 100000:
+        raise ValueError("invalid planning input")
+    if type(effort_factor) is not int or not 1 <= effort_factor <= 1024:
+        raise ValueError("invalid effort factor")
+    root = math.isqrt(width - 1) + 1
+    budget = effort_factor * root
+    target = max_records // 2
+    ratio = (budget + target - 1) // target
+    bits = max(0, (ratio - 1).bit_length())
+    return {"schema": "kangaroo-density-plan@1", "width": str(width),
+            "modelSteps": str(budget), "targetRecords": target, "dpBits": bits,
+            "expectedRecordsNumerator": str(budget), "expectedRecordsDenominator": str(1 << bits)}
+
+
 DP_FIELDS = {"schema", "manifestHash", "jumpHash", "workerId", "walkId",
              "generation", "herd", "point", "distance"}
 
@@ -91,7 +111,7 @@ class Engine:
         identifier(worker_id)
         if type(generation) is not int or not 0 <= generation < (1 << 31):
             raise ValueError("invalid generation")
-        if type(dp_bits) is not int or not 0 <= dp_bits <= 32:
+        if type(dp_bits) is not int or not 0 <= dp_bits <= 256:
             raise ValueError("invalid DP bits")
         if type(max_records) is not int or not 2 <= max_records <= 100000:
             raise ValueError("invalid memory bound")
@@ -153,6 +173,24 @@ class Engine:
             self.status = "memory_limit"
             return
         self.table[key] = record
+
+    def increase_capacity(self, max_records):
+        """Resume a saturated walk by retaining its pending DP before advancing.
+
+        The pending point is the most recently advanced herd, already counted in
+        dpVisits and represented by its exact walk state in v1 checkpoints.
+        """
+        if type(max_records) is not int or not self.config["maxRecords"] < max_records <= 100000:
+            raise ValueError("capacity must increase within the storage bound")
+        if self.status != "memory_limit":
+            raise ValueError("capacity increase requires saturation")
+        herd = "wild" if self.next_herd == "tame" else "tame"
+        record = self.record(herd)
+        if not distinguished(self.walks[herd]["point"], self.config["dpBits"]) or record["point"] in self.table:
+            raise ValueError("invalid pending distinguished point")
+        self.config["maxRecords"] = max_records
+        self.table[record["point"]] = record
+        self.status = "searching"
 
     def step(self):
         if self.status != "searching":
@@ -281,4 +319,10 @@ class Engine:
                 raise ValueError("invalid solution")
         elif engine.solution is not None:
             raise ValueError("unexpected solution")
+        if engine.status == "memory_limit":
+            herd = "wild" if engine.next_herd == "tame" else "tame"
+            if (engine.steps == 0 or len(engine.table) != config["maxRecords"]
+                    or not distinguished(engine.walks[herd]["point"], config["dpBits"])
+                    or engine.record(herd)["point"] in engine.table):
+                raise ValueError("invalid saturated checkpoint")
         return engine
