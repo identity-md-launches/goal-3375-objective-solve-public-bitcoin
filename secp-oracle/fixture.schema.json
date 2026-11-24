@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SYNTHETIC secp256k1 oracle fixtures",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "classification", "provenance", "intervals", "distances"],
+  "properties": {
+    "$schema": {"const": "./fixture.schema.json"},
+    "classification": {"const": "SYNTHETIC"},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seed_namespace", "libsecp256k1_commit", "digest", "signature"],
+      "properties": {
+        "seed_namespace": {"const": "imd-p140-e2-secp-oracle-v1"},
+        "libsecp256k1_commit": {"const": "0cdc758a56360bf58a851fe91085a327ec97685a"},
+        "digest": {"const": "SHA-256"},
+        "signature": {"const": "ECDSA RFC6979, low-S, compact r || s"}
+      }
+    },
+    "intervals": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {"$ref": "#/$defs/interval"}
+    },
+    "distances": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {"$ref": "#/$defs/distance"}
+    }
+  },
+  "$defs": {
+    "decimal": {"type": "string", "minLength": 1, "maxLength": 78, "pattern": "^(0|[1-9][0-9]*)$", "not": {"pattern": "[^0-9]"}},
+    "hex32": {"type": "string", "maxLength": 64, "pattern": "^[0-9a-f]{64}$"},
+    "sec33": {"type": "string", "maxLength": 66, "pattern": "^0[23][0-9a-f]{64}$"},
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case", "digest_hex", "compact_hex", "expected_valid"],
+      "properties": {
+        "case": {"enum": ["valid", "wrong-digest", "zero-r", "high-s"]},
+        "digest_hex": {"$ref": "#/$defs/hex32"},
+        "compact_hex": {"type": "string", "maxLength": 128, "pattern": "^[0-9a-f]{128}$"},
+        "expected_valid": {"type": "boolean"}
+      }
+    },
+    "interval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification", "id", "low", "high", "scalar", "sec_compressed", "sec_uncompressed", "expected_in_interval", "signatures"],
+      "properties": {
+        "classification": {"const": "SYNTHETIC"},
+        "id": {"type": "string", "pattern": "^(ordinary|near-2pow139)-(below|low|interior|high|above)$"},
+        "low": {"$ref": "#/$defs/decimal"},
+        "high": {"$ref": "#/$defs/decimal"},
+        "scalar": {"$ref": "#/$defs/decimal"},
+        "sec_compressed": {"$ref": "#/$defs/sec33"},
+        "sec_uncompressed": {"type": "string", "maxLength": 130, "pattern": "^04[0-9a-f]{128}$"},
+        "expected_in_interval": {"type": "boolean"},
+        "signatures": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {"$ref": "#/$defs/signature"}
+        }
+      }
+    },
+    "distance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification", "id", "boundary_exponent", "distance", "bit_length", "uint256_be_hex", "sec_compressed", "expected_valid"],
+      "properties": {
+        "classification": {"const": "SYNTHETIC"},
+        "id": {"type": "string", "pattern": "^2pow(125|126|128|139)-(below|at|above)$"},
+        "boundary_exponent": {"enum": ["125", "126", "128", "139"]},
+        "distance": {"$ref": "#/$defs/decimal"},
+        "bit_length": {"enum": ["125", "126", "127", "128", "129", "139", "140"]},
+        "uint256_be_hex": {"$ref": "#/$defs/hex32"},
+        "sec_compressed": {"$ref": "#/$defs/sec33"},
+        "expected_valid": {"const": true}
+      }
+    }
+  }
+}

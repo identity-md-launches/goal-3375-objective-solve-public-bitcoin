@@ -1,0 +1,41 @@
+{
+  "version": "28.1",
+  "platform": "official Linux x86_64 GNU",
+  "upstream_url": "https://bitcoincore.org/bin/bitcoin-core-28.1/bitcoin-28.1-x86_64-linux-gnu.tar.gz",
+  "upstream_sha256": "07f77afd326639145b9ba9562912b2ad2ccec47b8a305bd075b4f4cb127b7ed7",
+  "upstream_archive_bytes": 49598812,
+  "components": {
+    "bitcoind": {
+      "archive_member": "bitcoin-28.1/bin/bitcoind",
+      "sha256": "c2e73c31a0b371bd0721bc8bb6d199736fa1f3d2bb45edb7c8056eab3cec168a",
+      "bytes": 16541800,
+      "compressed_sha256": "668ba50f245a5f4ce6b37819668886e6818ab297016385e5a30a6150c51f47d5",
+      "compressed_bytes": 6068820
+    },
+    "bitcoin-cli": {
+      "archive_member": "bitcoin-28.1/bin/bitcoin-cli",
+      "sha256": "cbf9e57b8aa71f337bd790e8a6a3eac8739da00e476e0c0b646961599ee3b936",
+      "bytes": 2466216,
+      "compressed_sha256": "4be0272c5e69f7b77d69792fbdb0a153e197dda8384521df4e23c5258b9a749d",
+      "compressed_bytes": 722720
+    }
+  },
+  "source_commit": "32efe850438ef22e2de39e562af557872a402c31",
+  "source_tag_object": "0e6ddeca339cef84d862bd8ce4e38f4bf83a8760",
+  "license_url": "https://raw.githubusercontent.com/bitcoin/bitcoin/32efe850438ef22e2de39e562af557872a402c31/COPYING",
+  "release_hashes_url": "https://bitcoincore.org/bin/bitcoin-core-28.1/SHA256SUMS",
+  "release_signatures_url": "https://bitcoincore.org/bin/bitcoin-core-28.1/SHA256SUMS.asc",
+  "signer_key_url": "https://raw.githubusercontent.com/bitcoin-core/guix.sigs/93aacee89333de43a96e7d128baa84e737c41b0b/builder-keys/achow101.gpg",
+  "verified_signer_fingerprint": "152812300785C96444D3334D17565732E08E5E41",
+  "signature_packet": {
+    "offset": 310,
+    "bytes": 583
+  },
+  "compression": "Python stdlib lzma FORMAT_XZ preset=9; no executable stripping or patching",
+  "provenance_files": {
+    "SHA256SUMS": "5411f333fce232f4072e6440cc507e36a0305861414740fbbd5f5abf569c3cf4",
+    "SHA256SUMS.asc": "38ceccc2e21a21d37028242817ec928dbea8b3ddd8af77bec7a1befd02380ea4",
+    "COPYING": "779d9beab4eef2340bb1e86e91f8f55dea9b0985a2d03fbcbb52bd713e091e1b",
+    "achow101.gpg": "1b31ab2e336d5ee44dd4d9f5703ad4445798fcee3b1352ab75afa145e737224a"
+  }
+}

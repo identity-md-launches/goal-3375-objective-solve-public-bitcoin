@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bitcoin public payment receipt v1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "receipt-check/v1"
+    },
+    "network": {
+      "enum": [
+        "mainnet",
+        "regtest"
+      ]
+    },
+    "synthetic": {
+      "type": "boolean"
+    },
+    "recipient": {
+      "type": "string"
+    },
+    "snapshot": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "outpoints": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/outpoint"
+          }
+        }
+      },
+      "required": [
+        "address",
+        "outpoints"
+      ],
+      "additionalProperties": false
+    },
+    "tx": {
+      "$ref": "#/$defs/transaction"
+    },
+    "prevouts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/transaction"
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "network",
+    "synthetic",
+    "recipient",
+    "snapshot",
+    "tx",
+    "prevouts"
+  ],
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "properties": {
+        "network": {
+          "const": "mainnet"
+        },
+        "recipient": {
+          "const": "bc1pg6luxm9s4qq65lge4l6ual7xwdw5v85eh675cmrl5we0ht3vpfhswxu0cx"
+        },
+        "snapshot": {
+          "properties": {
+            "address": {
+              "const": "1QKBaU6WAeycb3DbKbLBkX7vJiaS8r42Xo"
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "network": {
+          "const": "regtest"
+        },
+        "synthetic": {
+          "const": true
+        },
+        "recipient": {
+          "type": "string",
+          "pattern": "^bcrt1p[023456789acdefghjklmnpqrstuvwxyz]{58}$"
+        },
+        "snapshot": {
+          "properties": {
+            "address": {
+              "type": "string",
+              "pattern": "^[mn][1-9A-HJ-NP-Za-km-z]{25,34}$"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "txid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "outpoint": {
+      "type": "object",
+      "properties": {
+        "txid": {
+          "$ref": "#/$defs/txid"
+        },
+        "vout": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "value_sats": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2100000000000000
+        }
+      },
+      "required": [
+        "txid",
+        "vout",
+        "value_sats"
+      ],
+      "additionalProperties": false
+    },
+    "transaction": {
+      "type": "object",
+      "properties": {
+        "txid": {
+          "$ref": "#/$defs/txid"
+        },
+        "raw_hex": {
+          "type": "string",
+          "pattern": "^([0-9a-f]{2})+$",
+          "maxLength": 8000000
+        }
+      },
+      "required": [
+        "txid",
+        "raw_hex"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,22 +1,138 @@
-# regtest-payment — Bitcoin Core regtest payment fixture (SYNTHETIC)
+# Offline SYNTHETIC seven-input regtest sweep
 
-Disposable fixture: fresh regtest datadir in a temp dir, peer networking off
-(`-listen=0 -connect=0 -networkactive=0 -dnsseed=0 -fixedseeds=0`), RPC on 127.0.0.1 only.
-Creates wallets `miner`, `src`, `dest` for this run only, funds a legacy P2PKH output
-(0.5 BTC) in `src`, spends it to one Taproot (bech32m) address from `dest` less a fixed
-1000-sat fee, signs with `signrawtransactionwithwallet` inside Core, mines 1 block and checks
-the exact input, P2PKH prevout type, output script hex, paid sats and fee (also against
-Core's `getrawtransaction ... 2` fee). Every RPC first asserts `chain == regtest`.
-The datadir (including wallets) is deleted at exit; the receipt holds only public data.
+This component exercises Bitcoin Core **28.1** on a fresh disposable regtest chain.
+It does not search for a real key, inspect mainnet UTXOs, or claim a prize.
+The production objective remains **INCOMPLETE**.
 
-Prerequisites: Python 3 (stdlib only), Bitcoin Core `bitcoind` + `bitcoin-cli` (tested 28.1,
-from https://bitcoincore.org/bin/bitcoin-core-28.1/, SHA256SUMS checked).
+## Exact offline commands
 
-    python3 -m unittest discover -s regtest-payment/tests -v   # 5 tests, no Core needed
-    python3 regtest-payment/regtest_payment.py --bindir /path/to/bitcoin-28.1/bin \
-        --receipt regtest-payment/receipt.json
+From the checkout root, on Linux x86_64 with Python 3.10+ (including stdlib `lzma`),
+glibc and the normal system dynamic loader:
 
-Expected: exit 0 and a JSON receipt with `"network": "regtest"`, `"height": 103`,
-`"depth": 1`, `"input_sats": 50000000`, `"paid_sats": 49999000`, `"fee_sats": 1000`
-(txids differ per run). `receipt.json` is a sample from an actual run.
-On error it prints `ERROR: ...` to stderr and exits 1.
+```sh
+mkdir -p test/scratch
+TMPDIR="$PWD/test/scratch" python3 -B regtest-payment/verify_runtime.py
+TMPDIR="$PWD/test/scratch" python3 -B -m unittest discover -s regtest-payment/tests -v
+TMPDIR="$PWD/test/scratch" python3 -B regtest-payment/regtest_payment.py --receipt test/scratch/new-synthetic-receipt.json
+python3 -B regtest-payment/verify_receipt.py test/scratch/new-synthetic-receipt.json
+```
+
+No command above downloads anything. Default tests run the **actual bundled Core**;
+missing, corrupt, incompatible or unexecutable Core causes failure, not a mock or
+silent skip. `test/scratch` is disposable and not delivered. The checked-in
+`receipt.json` is public evidence from an actual run; the default suite also checks
+it and generates another fresh chain. Temporary binaries and datadirs are removed.
+
+Optional offline verification of the upstream signature requires installed GnuPG:
+
+```sh
+TMPDIR="$PWD/test/scratch" python3 -B regtest-payment/verify_runtime.py --signature
+```
+
+It uses an isolated temporary keyring, no user configuration, and no keyserver.
+It verifies only the pinned Ava Chow signature, fingerprint
+`152812300785C96444D3334D17565732E08E5E41`; it does not claim that all release
+signers were verified. The public key is pinned to an immutable upstream repository
+commit. Trust in that source is distinct from cryptographic signature validity.
+
+## Packaged runtime and provenance
+
+Only two **unmodified official executables**, each XZ-compressed once, are shipped:
+
+| Component | Installed bytes | Compressed bytes | SHA256 of executable |
+|---|---:|---:|---|
+| bitcoind | 16,541,800 | 6,068,820 | `c2e73c31a0b371bd0721bc8bb6d199736fa1f3d2bb45edb7c8056eab3cec168a` |
+| bitcoin-cli | 2,466,216 | 722,720 | `cbf9e57b8aa71f337bd790e8a6a3eac8739da00e476e0c0b646961599ee3b936` |
+| Total | 19,008,016 | 6,791,540 | |
+
+`runtime/manifest.json` pins component and compressed hashes, archive size/hash,
+source commit, release signature/key provenance and license hash. The original
+49,598,812-byte distribution archive is **not delivered**, nor are Qt, test binaries,
+manpages, sample configuration, duplicate uncompressed executables or submodules.
+`runtime/COPYING` is the upstream MIT license, fetched from source commit
+`32efe850438ef22e2de39e562af557872a402c31` (v28.1).
+
+Official archive:
+<https://bitcoincore.org/bin/bitcoin-core-28.1/bitcoin-28.1-x86_64-linux-gnu.tar.gz>
+
+Its SHA256 is
+`07f77afd326639145b9ba9562912b2ad2ccec47b8a305bd075b4f4cb127b7ed7`, verified against
+the delivered official `SHA256SUMS` and its signed release statement. These hashes
+pin exactly the release bytes; no compiler or rebuild is required for normal use.
+At runtime the compressed and decompressed hashes are checked before execution.
+An optional `--bindir` must contain the same exact hash-verified executables.
+
+For maintainers who already have the archive locally, reproduce the payloads
+without downloading (uses stdlib XZ preset 9; a different liblzma may change the
+compressed representation and will fail the compressed-hash check):
+
+```sh
+python3 -B regtest-payment/package_runtime.py /path/to/bitcoin-28.1-x86_64-linux-gnu.tar.gz --output test/scratch/repacked-core
+```
+
+## Behavior and evidence
+
+* Core uses a new mode-0700 datadir, an explicitly empty fixture configuration,
+  fixture-owned cookie authentication, loopback-only RPC and an ephemeral port.
+  Child processes receive a minimal fixture-owned environment. No existing wallet,
+  machine credentials, user configuration or external RPC endpoint is read.
+* Peer networking is disabled (`listen=0`, `connect=0`, `networkactive=0`,
+  `dnsseed=0`, `fixedseeds=0`, UPnP/NAT-PMP off). The fixture checks zero connections
+  and `networkactive=false`; every operational RPC is guarded by the regtest chain.
+* All mining and source keys are generated by fresh Core wallets. Seven distinct
+  legacy addresses each receive 50,000,000 sats in a confirmed funding transaction.
+  The sweep consumes exactly those seven P2PKH outputs and has exactly one output.
+* The supplied mainnet address is checked by re-encoding its exact witness program
+  with the mainnet Bech32m checksum. The regtest destination encodes the same bytes:
+  `46bfc36cb0a801aa7d19aff5ceffc6735d461e99bebd4c6c7fa3b2fbae2c0a6f`.
+  Core independently validates the regtest address and its `5120...` script.
+  No destination wallet or destination key is created.
+* The default fee is 3,000 sats. Policy rejects nonpositive fees, fees above 10,000
+  sats, and rates outside 1–10 sat/vB. Absolute bounds are checked before starting
+  Core; actual signed-vsize bounds are checked before mempool submission.
+* Core verifies signatures via `testmempoolaccept`; the fixture checks its fee and
+  vsize, broadcasts only to its isolated regtest node, mines the sweep and one more
+  block, checks verbose raw prevouts/fees, active-chain membership, height and depth.
+* SIGINT and SIGTERM at the fully signed, pre-broadcast phase are exercised using
+  real subprocess signals. Tests check exit 130, terminated Core, deleted datadir,
+  and no success receipt. Ordinary failures also clean up. SIGKILL/power loss cannot
+  run Python cleanup; disposable scratch directories must then be removed manually.
+* The public `SYNTHETIC` receipt includes funding/sweep raw transactions, all seven
+  prevouts, raw funding and sweep blocks, headers, mempool result, fee/vsize and
+  active-chain depth. It includes no keys, wallets, cookie, datadir or credentials.
+  Receipt publication occurs only after successful verification and cleanup.
+
+`verify_receipt.py` independently parses raw transaction bytes, checks txids,
+prevout values/scripts, exact output, fee/vsize, block Merkle roots, regtest proof
+of work, and funding→sweep→tip header linkage. It is a consistency verifier, not a
+full script/consensus engine or independent attestation that the reported node ran.
+Actual Core tests provide signature admission and chain checks. The receipt is
+synthetic evidence, never evidence of a production payment.
+
+## Later private-claim harness integration
+
+The Python entrypoint is:
+
+```python
+import regtest_payment
+receipt = regtest_payment.run(receipt_path, signer=my_adapter)
+# my_adapter(node, unsigned_hex, public_prevouts) -> signed_hex
+```
+
+The adapter receives only this fixture's fresh regtest node, an unsigned sweep and
+public prevouts. The default path signs in Core with the fresh `src` wallet. All
+normal post-signing checks still run for an adapter. There is deliberately no CLI
+option accepting a real key, a pre-existing datadir or an external node.
+
+The suite tests the callback boundary with an unsigned transaction that real Core
+rejects. **No private-claim implementation or successful external signer adapter is
+present or claimed tested here.** A later integration must supply its adapter and
+run this harness on an entrant-controlled private machine before production use.
+
+## Recorded run
+
+The delivered receipt records Core `/Satoshi:28.1.0/`, seven inputs totaling
+350,000,000 sats, one output paying 349,997,000 sats, a 3,000-sat fee, 1,082 vbytes,
+height 103 and active-chain depth 2 at tip height 104. Runtime for that fixture was
+3.165132 seconds. Keys, txids, signatures and exact signed vsize vary between runs;
+fixed invariants above are asserted each time. Hardware/device label: **unknown**.

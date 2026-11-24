@@ -1,0 +1,86 @@
+{
+ "seed": "kangaroo-cpu-fixtures-v1",
+ "note": "SYNTHETIC known-answer fixtures; synthetic_key is generated, never a real key",
+ "cases": [
+  {
+   "label": "SYNTHETIC-w32-random",
+   "seed": "kangaroo-cpu-fixtures-v1",
+   "width_bits": 32,
+   "where": "random",
+   "start": "48159de8b",
+   "end": "58159de8a",
+   "pubkey": "038572d9f2ca8ce7d2d664294eebe9e139cad3f69ff980ae3a4329efac0c10bc43",
+   "synthetic_key": "530652b8e"
+  },
+  {
+   "label": "SYNTHETIC-w36-start-endpoint",
+   "seed": "kangaroo-cpu-fixtures-v1",
+   "width_bits": 36,
+   "where": "start",
+   "start": "21441ff997e",
+   "end": "22441ff997d",
+   "pubkey": "02ff83f64cc2188becafd6c15571ca902bd26273c0be68cdcc44b9966483d4dafa",
+   "synthetic_key": "21441ff997e"
+  },
+  {
+   "label": "SYNTHETIC-w36-end-endpoint",
+   "seed": "kangaroo-cpu-fixtures-v1",
+   "width_bits": 36,
+   "where": "end",
+   "start": "b4dcf298c97",
+   "end": "b5dcf298c96",
+   "pubkey": "034789357083794baf622e3fe5da89966c616632f5c2ce78908aae9feceae9dda5",
+   "synthetic_key": "b5dcf298c96"
+  },
+  {
+   "label": "SYNTHETIC-w20-narrow-high-offset-near-n",
+   "seed": "kangaroo-cpu-fixtures-v1",
+   "width_bits": 20,
+   "where": "random",
+   "start": "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8ccf02fbda",
+   "end": "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8ccf12fbd9",
+   "pubkey": "03aa14bd015d0c0ba87f6f5d3128447495a5fa348a607840e8d879de6a1245cf7e",
+   "synthetic_key": "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8ccf121d1c"
+  },
+  {
+   "label": "SYNTHETIC-w24-narrow-high-offset-end-endpoint",
+   "seed": "kangaroo-cpu-fixtures-v1",
+   "width_bits": 24,
+   "where": "end",
+   "start": "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8ccf36413f",
+   "end": "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd036413e",
+   "pubkey": "03f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
+   "synthetic_key": "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd036413e"
+  },
+  {
+   "label": "SYNTHETIC-w28-high-offset-2^255",
+   "seed": "kangaroo-cpu-fixtures-v1",
+   "width_bits": 28,
+   "where": "start",
+   "start": "8000000000000000000000000000000000000000000000000000000000abcdef",
+   "end": "8000000000000000000000000000000000000000000000000000000010abcdee",
+   "pubkey": "034b4839ba42adb72e835b66366210589702dc43815a5192170f2a06cfac589ec1",
+   "synthetic_key": "8000000000000000000000000000000000000000000000000000000000abcdef"
+  },
+  {
+   "label": "SYNTHETIC-w44-thread-scaling",
+   "seed": "kangaroo-cpu-fixtures-v1",
+   "width_bits": 44,
+   "where": "random",
+   "start": "d15c4a2025c65",
+   "end": "d25c4a2025c64",
+   "pubkey": "0292c4e026effcb7175060db9c676d040690bbffd31dbbeddf04f97df876d04ce8",
+   "synthetic_key": "d1eeae6985fc7"
+  },
+  {
+   "label": "SYNTHETIC-w46-save-resume",
+   "seed": "kangaroo-cpu-fixtures-v1",
+   "width_bits": 46,
+   "where": "random",
+   "start": "39a98c8593d454",
+   "end": "39e98c8593d453",
+   "pubkey": "02e2b76defec77488d14b8d764992257d399a6a16e885bf8c160d3346860e481f4",
+   "synthetic_key": "39c42de0f79710"
+  }
+ ]
+}

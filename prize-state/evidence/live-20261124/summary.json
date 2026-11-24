@@ -1,0 +1,262 @@
+{
+ "address": "1QKBaU6WAeycb3DbKbLBkX7vJiaS8r42Xo",
+ "collector_sha256": "2840348a1126bc1f78dff4077abae95254a096ae7aedc2332c49ef3836bf8f62",
+ "limitations": [
+  "Two Esplora indexes are third-party views, not a validating full node; neither proves proof-of-work or script validity.",
+  "Requests are sequential HTTP GETs; equal tip before/after only bounds, does not prove, that address data reflects that tip.",
+  "A common confirmed tip across providers does not make mempool data atomic or global: each mempool is a local, unsynchronised view.",
+  "Absence of a pending spend in two mempools does not prove none exists elsewhere (unbroadcast or other nodes' mempools).",
+  "Freshness decays immediately: any new block or broadcast after observed_until can change the spendable set; re-run before any claim.",
+  "Confirmed-history pagination relies on provider ordering; completeness is cross-checked against chain_stats counts and sums."
+ ],
+ "prior_observation": {
+  "hash": "00000000000000000001caebc8ecdb62adccbd17b4b63816a1f1535c010941d8",
+  "height": 977345,
+  "note": "HISTORICAL ONLY - never current; superseded by this bundle's own observation",
+  "sats": 1400002880
+ },
+ "result": {
+  "agreement": "AGREE",
+  "anchor": {
+   "hash": "00000000000000000000614edfbe082ed1b23371f34068273fb6c19a8800d8c7",
+   "height": 977347
+  },
+  "confirmed_unspent_sats": 1400002880,
+  "differs_from_prior_observation": false,
+  "latest_provider_start": "2026-11-24T09:06:12.552Z",
+  "observed_from": "2026-11-24T09:05:38.921Z",
+  "observed_until": "2026-11-24T09:06:25.907Z",
+  "outpoints": [
+   "08389f34c98c606322740c0be6a7125d9860bb8d5cb182c02f98461e5fa6cd15:139",
+   "12f34b58b04dfb0233ce889f674781c0e0c7ba95482cca469125af41a78d13b3:64",
+   "2b4f5f05b1377845ff0f8c1552dc901172ee2da9508b08d5c951366f74fbbf63:0",
+   "5d45587cfd1d5b0fb826805541da7d94c61fe432259e68ee26f4a04544384164:88",
+   "918c913baad2ae7a3b444350e047559434a4441041b5ba5050d09b8b54ef68b7:0",
+   "d8c38d06fe7ea6adf44c5cc2cbf50083ec9cd8a3fc6c537e8d39db30639e8a77:0",
+   "dd23b1079095ec6821f003b5a1acd5942152f478411157d717c8bddf8f67fb94:0"
+  ],
+  "pending_funding": [],
+  "pending_spends": [],
+  "spendable_sats_excluding_pending_spends": 1400002880,
+  "utxo_count": 7
+ },
+ "rounds": [
+  {
+   "agreement": "AGREE",
+   "anchor": {
+    "hash": "00000000000000000000614edfbe082ed1b23371f34068273fb6c19a8800d8c7",
+    "height": 977347
+   },
+   "needs_repeat": false,
+   "providers": {
+    "blockstream": {
+     "confirmed_unspent_sats": 1400002880,
+     "confirmed_utxos": [
+      {
+       "block_hash": "0000000000000000188de542fd76b1676c4be6c380b39ddea119358c290cebd7",
+       "height": 339085,
+       "outpoint": "08389f34c98c606322740c0be6a7125d9860bb8d5cb182c02f98461e5fa6cd15:139",
+       "pending_spend": false,
+       "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac",
+       "txid": "08389f34c98c606322740c0be6a7125d9860bb8d5cb182c02f98461e5fa6cd15",
+       "value_sats": 14000000,
+       "vout": 139
+      },
+      {
+       "block_hash": "000000000000000000043c92859f7bbf4f5f89f2f577a322e6afa847379f608d",
+       "height": 785620,
+       "outpoint": "12f34b58b04dfb0233ce889f674781c0e0c7ba95482cca469125af41a78d13b3:64",
+       "pending_spend": false,
+       "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac",
+       "txid": "12f34b58b04dfb0233ce889f674781c0e0c7ba95482cca469125af41a78d13b3",
+       "value_sats": 1260000000,
+       "vout": 64
+      },
+      {
+       "block_hash": "00000000000000000001ef6128bde202062f4f3c0ad73c6993e0a7f4941bc924",
+       "height": 971144,
+       "outpoint": "2b4f5f05b1377845ff0f8c1552dc901172ee2da9508b08d5c951366f74fbbf63:0",
+       "pending_spend": false,
+       "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac",
+       "txid": "2b4f5f05b1377845ff0f8c1552dc901172ee2da9508b08d5c951366f74fbbf63",
+       "value_sats": 640,
+       "vout": 0
+      },
+      {
+       "block_hash": "0000000000000000004e73b5c140213d86a9819e553029d84195d0d159a51464",
+       "height": 475240,
+       "outpoint": "5d45587cfd1d5b0fb826805541da7d94c61fe432259e68ee26f4a04544384164:88",
+       "pending_spend": false,
+       "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac",
+       "txid": "5d45587cfd1d5b0fb826805541da7d94c61fe432259e68ee26f4a04544384164",
+       "value_sats": 126000000,
+       "vout": 88
+      },
+      {
+       "block_hash": "00000000000000000000fcc6ec41edffeaf9b6a1076404970e5f6f32c844f55f",
+       "height": 976130,
+       "outpoint": "918c913baad2ae7a3b444350e047559434a4441041b5ba5050d09b8b54ef68b7:0",
+       "pending_spend": false,
+       "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac",
+       "txid": "918c913baad2ae7a3b444350e047559434a4441041b5ba5050d09b8b54ef68b7",
+       "value_sats": 640,
+       "vout": 0
+      },
+      {
+       "block_hash": "00000000000000000002694712e0185ea597316a29229625a9c71d4a44c03283",
+       "height": 763870,
+       "outpoint": "d8c38d06fe7ea6adf44c5cc2cbf50083ec9cd8a3fc6c537e8d39db30639e8a77:0",
+       "pending_spend": false,
+       "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac",
+       "txid": "d8c38d06fe7ea6adf44c5cc2cbf50083ec9cd8a3fc6c537e8d39db30639e8a77",
+       "value_sats": 1000,
+       "vout": 0
+      },
+      {
+       "block_hash": "000000000000000000014b3619c735315697f5c172ee976d713365fd7adbbdff",
+       "height": 881168,
+       "outpoint": "dd23b1079095ec6821f003b5a1acd5942152f478411157d717c8bddf8f67fb94:0",
+       "pending_spend": false,
+       "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac",
+       "txid": "dd23b1079095ec6821f003b5a1acd5942152f478411157d717c8bddf8f67fb94",
+       "value_sats": 600,
+       "vout": 0
+      }
+     ],
+     "issues": [],
+     "mempool_tx_count": 0,
+     "observed_from": "2026-11-24T09:05:38.921Z",
+     "observed_until": "2026-11-24T09:06:12.552Z",
+     "pending_funding": [],
+     "pending_spends": [],
+     "requests": 36,
+     "spendable_sats_excluding_pending_spends": 1400002880,
+     "spent_outputs_confirmed": [
+      {
+       "height": 578732,
+       "outpoint": "7c432398c7631600af01695c9767eff109cbfae4f7ecccaff388043a474d4f1e:16",
+       "spending_txid": "17e4e323cfbc68d7f0071cad09364e8193eedf8fefbcbd8a21b4b65717a4b3d3",
+       "value_sats": 1000
+      }
+     ],
+     "status": "OK",
+     "tip_after": {
+      "hash": "00000000000000000000614edfbe082ed1b23371f34068273fb6c19a8800d8c7",
+      "height": 977347
+     },
+     "tip_after_in_best_chain": true,
+     "tip_before": {
+      "hash": "00000000000000000000614edfbe082ed1b23371f34068273fb6c19a8800d8c7",
+      "height": 977347
+     },
+     "tip_stable": true
+    },
+    "mempool": {
+     "confirmed_unspent_sats": 1400002880,
+     "confirmed_utxos": [
+      {
+       "block_hash": "0000000000000000188de542fd76b1676c4be6c380b39ddea119358c290cebd7",
+       "height": 339085,
+       "outpoint": "08389f34c98c606322740c0be6a7125d9860bb8d5cb182c02f98461e5fa6cd15:139",
+       "pending_spend": false,
+       "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac",
+       "txid": "08389f34c98c606322740c0be6a7125d9860bb8d5cb182c02f98461e5fa6cd15",
+       "value_sats": 14000000,
+       "vout": 139
+      },
+      {
+       "block_hash": "000000000000000000043c92859f7bbf4f5f89f2f577a322e6afa847379f608d",
+       "height": 785620,
+       "outpoint": "12f34b58b04dfb0233ce889f674781c0e0c7ba95482cca469125af41a78d13b3:64",
+       "pending_spend": false,
+       "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac",
+       "txid": "12f34b58b04dfb0233ce889f674781c0e0c7ba95482cca469125af41a78d13b3",
+       "value_sats": 1260000000,
+       "vout": 64
+      },
+      {
+       "block_hash": "00000000000000000001ef6128bde202062f4f3c0ad73c6993e0a7f4941bc924",
+       "height": 971144,
+       "outpoint": "2b4f5f05b1377845ff0f8c1552dc901172ee2da9508b08d5c951366f74fbbf63:0",
+       "pending_spend": false,
+       "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac",
+       "txid": "2b4f5f05b1377845ff0f8c1552dc901172ee2da9508b08d5c951366f74fbbf63",
+       "value_sats": 640,
+       "vout": 0
+      },
+      {
+       "block_hash": "0000000000000000004e73b5c140213d86a9819e553029d84195d0d159a51464",
+       "height": 475240,
+       "outpoint": "5d45587cfd1d5b0fb826805541da7d94c61fe432259e68ee26f4a04544384164:88",
+       "pending_spend": false,
+       "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac",
+       "txid": "5d45587cfd1d5b0fb826805541da7d94c61fe432259e68ee26f4a04544384164",
+       "value_sats": 126000000,
+       "vout": 88
+      },
+      {
+       "block_hash": "00000000000000000000fcc6ec41edffeaf9b6a1076404970e5f6f32c844f55f",
+       "height": 976130,
+       "outpoint": "918c913baad2ae7a3b444350e047559434a4441041b5ba5050d09b8b54ef68b7:0",
+       "pending_spend": false,
+       "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac",
+       "txid": "918c913baad2ae7a3b444350e047559434a4441041b5ba5050d09b8b54ef68b7",
+       "value_sats": 640,
+       "vout": 0
+      },
+      {
+       "block_hash": "00000000000000000002694712e0185ea597316a29229625a9c71d4a44c03283",
+       "height": 763870,
+       "outpoint": "d8c38d06fe7ea6adf44c5cc2cbf50083ec9cd8a3fc6c537e8d39db30639e8a77:0",
+       "pending_spend": false,
+       "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac",
+       "txid": "d8c38d06fe7ea6adf44c5cc2cbf50083ec9cd8a3fc6c537e8d39db30639e8a77",
+       "value_sats": 1000,
+       "vout": 0
+      },
+      {
+       "block_hash": "000000000000000000014b3619c735315697f5c172ee976d713365fd7adbbdff",
+       "height": 881168,
+       "outpoint": "dd23b1079095ec6821f003b5a1acd5942152f478411157d717c8bddf8f67fb94:0",
+       "pending_spend": false,
+       "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac",
+       "txid": "dd23b1079095ec6821f003b5a1acd5942152f478411157d717c8bddf8f67fb94",
+       "value_sats": 600,
+       "vout": 0
+      }
+     ],
+     "issues": [],
+     "mempool_tx_count": 0,
+     "observed_from": "2026-11-24T09:06:12.552Z",
+     "observed_until": "2026-11-24T09:06:25.907Z",
+     "pending_funding": [],
+     "pending_spends": [],
+     "requests": 36,
+     "spendable_sats_excluding_pending_spends": 1400002880,
+     "spent_outputs_confirmed": [
+      {
+       "height": 578732,
+       "outpoint": "7c432398c7631600af01695c9767eff109cbfae4f7ecccaff388043a474d4f1e:16",
+       "spending_txid": "17e4e323cfbc68d7f0071cad09364e8193eedf8fefbcbd8a21b4b65717a4b3d3",
+       "value_sats": 1000
+      }
+     ],
+     "status": "OK",
+     "tip_after": {
+      "hash": "00000000000000000000614edfbe082ed1b23371f34068273fb6c19a8800d8c7",
+      "height": 977347
+     },
+     "tip_after_in_best_chain": true,
+     "tip_before": {
+      "hash": "00000000000000000000614edfbe082ed1b23371f34068273fb6c19a8800d8c7",
+      "height": 977347
+     },
+     "tip_stable": true
+    }
+   },
+   "round": 1
+  }
+ ],
+ "schema": "prize-state/v1",
+ "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac"
+}

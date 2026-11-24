@@ -1,0 +1,64 @@
+{
+  "component": "rckangaroo-private-adapter",
+  "upstream": {
+    "repo": "https://github.com/RetiredC/RCKangaroo",
+    "pinned_commit": "618473acd7f5e696be5ec4f8377c18cc55c1361c",
+    "commit_subject": "Delete Makefile",
+    "commit_date": "2026-07-28T14:10:02+04:00",
+    "license": "GPLv3 (see upstream/LICENSE.TXT, sha256 8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903)",
+    "fetch_method": "git fetch --depth 1 origin <commit>; git checkout FETCH_HEAD; HEAD rev-parse == pinned_commit (verified)"
+  },
+  "vendored_source_files": {
+    "note": "Reviewed C/C++/CUDA source + build file + README + LICENSE, byte-identical to upstream at the pinned commit (hashes below match the upstream objects) EXCEPT RCKangaroo.cpp which carries the adapter patch.",
+    "upstream_pristine_sha256": {
+      "CMakeLists.txt": "e87fc651d2e0319119bf912c47ef30b0770aa5020f16a924f9bfb28f12cf1cc6",
+      "CallCubin.cpp": "881967cc1e48a7350ad5eb11ac3f7a4b9d8a3ad065dde3a0412c3ca7e704c2d5",
+      "CallCubin.h": "95997ba5c9c67f96080b78a450015533f1ab5d2596abf05199c8e3b5eca0c985",
+      "Ec.cpp": "5236050db7796be40d8f7af0f4fa79a073024ea15c2c8b8b692b6b28e0f7eb28",
+      "Ec.h": "fd136c7d99d46134873834852f8f767cb64c8d616f56f84d3402d4c075fa4c89",
+      "GpuKang.cpp": "e54b5903c855c3dd5d009e9aa857779b646fb9a2c25e64fb05d8905485c01d14",
+      "GpuKang.h": "e811c3d63e4cf2a44b7c607a23dfa79e7b2831b54d05ee384d2c30e8c452ce55",
+      "LICENSE.TXT": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+      "RCGpuCore.cu": "059791f702005b82d7c019eb08637ab66f8084b60e6de717124f6492edd3ffb7",
+      "RCGpuUtils.h": "c5fd50ddb8dfae5797a29a1d574d9981f2bfa9ec9841f9c5f3edecf750f425e0",
+      "RCKangaroo.cpp": "ef2a2819f33456c52be2a06d9c97db62d8f12e524d3d598b0c9c4a8e2ce805f0",
+      "README.md": "65327d14621769c411a4ae58a27b557c25b01171854c1ec56b8315810ee586f3",
+      "defs.h": "467ae80d4a7cf222bea6944ba83e950b25021898790df239b7407c5fe55ec2b9",
+      "fuse.asm": "79130150f2e67bb1c536ad90ad77d7fe360718ae9bd6ee234fd3c7a1f4d2fc49",
+      "main.asm": "8858220fe76a0f8563f157333fa5f3e0457066c83acb07f4e36a33ebdfefa132",
+      "mod_inv.asm": "41cd68f77f513f768ea7fb9b407ee0da466b2221f61842a6e3f5a90623b78734",
+      "mod_mul.asm": "c07bd5622a9fd44a62c0228be99c1c7f09158eeb84f2ffca676668e6efb318b6",
+      "mod_sub.asm": "90df65a3fcb7fbbbf29eaca6ebb0bf3568fd708e719a883cc4473727c2aaae87",
+      "newKernelB.asm": "bcbb6e706a9e1ae81f2e4f63486a6c4cfa206ab4f571852167bdef79b9bb3e2e",
+      "utils.cpp": "b659548681e3f3091a13d8f7106c72aa9ab39de739bd469582fdb4c0921f3562",
+      "utils.h": "11a16bfc9ffa143fa2ed96adb685254cd43da1794b043e2a1248ef3050ce2459"
+    },
+    "patched_file": {
+      "path": "upstream/RCKangaroo.cpp",
+      "pristine_sha256": "ef2a2819f33456c52be2a06d9c97db62d8f12e524d3d598b0c9c4a8e2ce805f0",
+      "patched_sha256": "7d0224cc72fd32bc78a7568e671408c705d3935c7470d3d4c3d353ef3b6ce13a",
+      "patch_file": "patches/0001-candidate-fd-key-sink.patch",
+      "patch_sha256": "f85f253f56564aa2d9dcfb5bbc3b062ac39ae709c4fbab9b97963eb90fe30afd"
+    }
+  },
+  "excluded_from_vendoring": {
+    "RESULTS.TXT": {
+      "upstream_sha256": "b957f4b55f3ced1887e3bc7c6f999cb17246b3a1f460117922285849da551ed8",
+      "reason": "Upstream RESULTS.TXT contains a recovered private key in plaintext. Excluded by policy: no recovered-key material is vendored, logged, or shipped. The patch also removes the code that writes this file."
+    },
+    "kernel_sm89.cubin": {
+      "upstream_sha256": "10b536b3a2fd61d8c729ca91c3266cb4294e5f5ab1e20cecabad9c9736cc8c20",
+      "reason": "Prebuilt opaque GPU binary (turbo kernel for sm_89 / RTX 4xxx). Not source; not rebuildable from the vendored .cu (upstream turbo kernels come from the proprietary RCAsm toolchain). Hash recorded; an entrant who needs the turbo path must fetch and verify it against this hash from the pinned commit on their own private GPU host."
+    },
+    "kernel_sm120.cubin": {
+      "upstream_sha256": "5eff0f700299ec57d1308267b83ac5f5126fdeff47b67ada18d66c40082aca4f",
+      "reason": "Prebuilt opaque GPU binary (turbo kernel for sm_120 / RTX 5xxx). Same rationale as kernel_sm89.cubin."
+    },
+    "RCKangaroo.sln": {"upstream_sha256": "07ffbb10bb991bf8caf79c14ed68fc1c30e82828d069312291772a58c67ba873", "reason": "Visual Studio solution; not needed for the CMake/Linux source build."},
+    "RCKangaroo.vcxproj": {"upstream_sha256": "3899f866786d02586c45e14e11f05921ead857ec77fee3b7525e44adef0d7472", "reason": "Visual Studio project; not needed for the CMake/Linux source build."},
+    "RCKangaroo.vcxproj.user": {"upstream_sha256": "b3272c6ec95065c5d293cd256f6f395d1d7b6b8dcac6e49cb1d96806d563593e", "reason": "Visual Studio per-user settings; not needed."}
+  },
+  "asm_note": "The *.asm files are upstream RCAsm turbo-kernel sources. They are vendored for review/provenance but are NOT consumed by the CMake build, which compiles RCGpuCore.cu. They cannot be assembled without upstream's RCAsm toolchain and are not required for a working (non-turbo) CUDA build.",
+  "patch_summary": "Redirects the recovered key to an inherited --candidate-fd as 32 big-endian bytes, fails closed on any sink error, removes the stdout 'PRIVATE KEY' print and the RESULTS.TXT writer, and requires --candidate-fd before real/main-mode solving. See patches/0001-candidate-fd-key-sink.patch.",
+  "verification": "Vendored upstream file hashes equal the upstream objects at the pinned commit (confirmed during vendoring). SHA256SUMS.txt lists the exact shipped bytes."
+}

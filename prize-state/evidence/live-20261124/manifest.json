@@ -1,0 +1,813 @@
+{
+ "address": "1QKBaU6WAeycb3DbKbLBkX7vJiaS8r42Xo",
+ "collector_sha256": "2840348a1126bc1f78dff4077abae95254a096ae7aedc2332c49ef3836bf8f62",
+ "max_requests": 200,
+ "rounds": [
+  {
+   "providers": {
+    "blockstream": {
+     "requests": [
+      {
+       "bytes": 6,
+       "elapsed_ms": 744,
+       "file": "raw/r1/blockstream/000.body",
+       "http_status": 200,
+       "key": "tip_before_height",
+       "sha256": "1feecf8006c3738d2d1f7f46f0bc52b98968a16fb376460a63361e09378bd1bb",
+       "t_end": "2026-11-24T09:05:39.666Z",
+       "t_start": "2026-11-24T09:05:38.921Z",
+       "url": "https://blockstream.info/api/blocks/tip/height"
+      },
+      {
+       "bytes": 64,
+       "elapsed_ms": 890,
+       "file": "raw/r1/blockstream/001.body",
+       "http_status": 200,
+       "key": "tip_before_hash",
+       "sha256": "0795a57a99b4aca34425665a7e02533f424a6d9c40265c82f75aa8f2f8d87f32",
+       "t_end": "2026-11-24T09:05:40.556Z",
+       "t_start": "2026-11-24T09:05:39.666Z",
+       "url": "https://blockstream.info/api/blocks/tip/hash"
+      },
+      {
+       "bytes": 276,
+       "elapsed_ms": 879,
+       "file": "raw/r1/blockstream/002.body",
+       "http_status": 200,
+       "key": "address",
+       "sha256": "8864a9b32558e01a88c07aebcca6cba379c3aec216db63cdd54dc0bc9f865b2a",
+       "t_end": "2026-11-24T09:05:41.435Z",
+       "t_start": "2026-11-24T09:05:40.556Z",
+       "url": "https://blockstream.info/api/address/1QKBaU6WAeycb3DbKbLBkX7vJiaS8r42Xo"
+      },
+      {
+       "bytes": 260652,
+       "elapsed_ms": 1513,
+       "file": "raw/r1/blockstream/003.body",
+       "http_status": 200,
+       "key": "chain_page_00",
+       "sha256": "ee7120c1a6ba23770068581dfee5e6c30e0844793be7c174804f1184c015e452",
+       "t_end": "2026-11-24T09:05:42.949Z",
+       "t_start": "2026-11-24T09:05:41.435Z",
+       "url": "https://blockstream.info/api/address/1QKBaU6WAeycb3DbKbLBkX7vJiaS8r42Xo/txs/chain"
+      },
+      {
+       "bytes": 2,
+       "elapsed_ms": 1499,
+       "file": "raw/r1/blockstream/004.body",
+       "http_status": 200,
+       "key": "mempool_txs",
+       "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+       "t_end": "2026-11-24T09:05:44.449Z",
+       "t_start": "2026-11-24T09:05:42.950Z",
+       "url": "https://blockstream.info/api/address/1QKBaU6WAeycb3DbKbLBkX7vJiaS8r42Xo/txs/mempool"
+      },
+      {
+       "bytes": 1781,
+       "elapsed_ms": 913,
+       "file": "raw/r1/blockstream/005.body",
+       "http_status": 200,
+       "key": "utxo",
+       "sha256": "a0d23322a89f490b9701dd2411acc5a031203ad33a2994ec4608309764b6350a",
+       "t_end": "2026-11-24T09:05:45.362Z",
+       "t_start": "2026-11-24T09:05:44.449Z",
+       "url": "https://blockstream.info/api/address/1QKBaU6WAeycb3DbKbLBkX7vJiaS8r42Xo/utxo"
+      },
+      {
+       "bytes": 450,
+       "elapsed_ms": 889,
+       "file": "raw/r1/blockstream/006.body",
+       "http_status": 200,
+       "key": "hex:918c913baad2ae7a3b444350e047559434a4441041b5ba5050d09b8b54ef68b7",
+       "sha256": "cac465f1ef9c0c7abddc4d32b4078c2794803763fce8feca6695c79abbe38b02",
+       "t_end": "2026-11-24T09:05:46.252Z",
+       "t_start": "2026-11-24T09:05:45.362Z",
+       "url": "https://blockstream.info/api/tx/918c913baad2ae7a3b444350e047559434a4441041b5ba5050d09b8b54ef68b7/hex"
+      },
+      {
+       "bytes": 144,
+       "elapsed_ms": 889,
+       "file": "raw/r1/blockstream/007.body",
+       "http_status": 200,
+       "key": "status:918c913baad2ae7a3b444350e047559434a4441041b5ba5050d09b8b54ef68b7",
+       "sha256": "bac9c434ae970052982e4ce186d5f49dc5b507d5beb10c47f1105e3ff712bb70",
+       "t_end": "2026-11-24T09:05:47.141Z",
+       "t_start": "2026-11-24T09:05:46.252Z",
+       "url": "https://blockstream.info/api/tx/918c913baad2ae7a3b444350e047559434a4441041b5ba5050d09b8b54ef68b7/status"
+      },
+      {
+       "bytes": 268,
+       "elapsed_ms": 889,
+       "file": "raw/r1/blockstream/008.body",
+       "http_status": 200,
+       "key": "outspends:918c913baad2ae7a3b444350e047559434a4441041b5ba5050d09b8b54ef68b7",
+       "sha256": "16d3f8e9d518fe9d9bd44c1144342ba0a9b2cabfcc0f38204c48f30060936802",
+       "t_end": "2026-11-24T09:05:48.031Z",
+       "t_start": "2026-11-24T09:05:47.141Z",
+       "url": "https://blockstream.info/api/tx/918c913baad2ae7a3b444350e047559434a4441041b5ba5050d09b8b54ef68b7/outspends"
+      },
+      {
+       "bytes": 382,
+       "elapsed_ms": 896,
+       "file": "raw/r1/blockstream/009.body",
+       "http_status": 200,
+       "key": "hex:2b4f5f05b1377845ff0f8c1552dc901172ee2da9508b08d5c951366f74fbbf63",
+       "sha256": "d1886b13a4c57d5acbfd836a340cebc6ff7a82ab6155e5229600557770b19399",
+       "t_end": "2026-11-24T09:05:48.927Z",
+       "t_start": "2026-11-24T09:05:48.031Z",
+       "url": "https://blockstream.info/api/tx/2b4f5f05b1377845ff0f8c1552dc901172ee2da9508b08d5c951366f74fbbf63/hex"
+      },
+      {
+       "bytes": 144,
+       "elapsed_ms": 888,
+       "file": "raw/r1/blockstream/010.body",
+       "http_status": 200,
+       "key": "status:2b4f5f05b1377845ff0f8c1552dc901172ee2da9508b08d5c951366f74fbbf63",
+       "sha256": "221131e977d1779c97ae17c0e95bb5f1dd81ad0ab74c11df5c2e9e66e9294929",
+       "t_end": "2026-11-24T09:05:49.816Z",
+       "t_start": "2026-11-24T09:05:48.927Z",
+       "url": "https://blockstream.info/api/tx/2b4f5f05b1377845ff0f8c1552dc901172ee2da9508b08d5c951366f74fbbf63/status"
+      },
+      {
+       "bytes": 17,
+       "elapsed_ms": 889,
+       "file": "raw/r1/blockstream/011.body",
+       "http_status": 200,
+       "key": "outspends:2b4f5f05b1377845ff0f8c1552dc901172ee2da9508b08d5c951366f74fbbf63",
+       "sha256": "e062e2a6db656cc08172a504cee85612101aca6b18fbfcf9efc735aaa237bd6a",
+       "t_end": "2026-11-24T09:05:50.705Z",
+       "t_start": "2026-11-24T09:05:49.816Z",
+       "url": "https://blockstream.info/api/tx/2b4f5f05b1377845ff0f8c1552dc901172ee2da9508b08d5c951366f74fbbf63/outspends"
+      },
+      {
+       "bytes": 382,
+       "elapsed_ms": 885,
+       "file": "raw/r1/blockstream/012.body",
+       "http_status": 200,
+       "key": "hex:dd23b1079095ec6821f003b5a1acd5942152f478411157d717c8bddf8f67fb94",
+       "sha256": "7c68218ded463ad193ceb01909590907d61b1b75620dd5378310cdc11bc352fa",
+       "t_end": "2026-11-24T09:05:51.590Z",
+       "t_start": "2026-11-24T09:05:50.705Z",
+       "url": "https://blockstream.info/api/tx/dd23b1079095ec6821f003b5a1acd5942152f478411157d717c8bddf8f67fb94/hex"
+      },
+      {
+       "bytes": 144,
+       "elapsed_ms": 873,
+       "file": "raw/r1/blockstream/013.body",
+       "http_status": 200,
+       "key": "status:dd23b1079095ec6821f003b5a1acd5942152f478411157d717c8bddf8f67fb94",
+       "sha256": "549e9ffded4002ba0389158861deed9746341121a57cf92057453596f0616a7d",
+       "t_end": "2026-11-24T09:05:52.463Z",
+       "t_start": "2026-11-24T09:05:51.590Z",
+       "url": "https://blockstream.info/api/tx/dd23b1079095ec6821f003b5a1acd5942152f478411157d717c8bddf8f67fb94/status"
+      },
+      {
+       "bytes": 17,
+       "elapsed_ms": 882,
+       "file": "raw/r1/blockstream/014.body",
+       "http_status": 200,
+       "key": "outspends:dd23b1079095ec6821f003b5a1acd5942152f478411157d717c8bddf8f67fb94",
+       "sha256": "e062e2a6db656cc08172a504cee85612101aca6b18fbfcf9efc735aaa237bd6a",
+       "t_end": "2026-11-24T09:05:53.346Z",
+       "t_start": "2026-11-24T09:05:52.463Z",
+       "url": "https://blockstream.info/api/tx/dd23b1079095ec6821f003b5a1acd5942152f478411157d717c8bddf8f67fb94/outspends"
+      },
+      {
+       "bytes": 6100,
+       "elapsed_ms": 881,
+       "file": "raw/r1/blockstream/015.body",
+       "http_status": 200,
+       "key": "hex:12f34b58b04dfb0233ce889f674781c0e0c7ba95482cca469125af41a78d13b3",
+       "sha256": "79a3abae9e842d61e2a3251d50704381db704e1844da436f678730fe0e63e56b",
+       "t_end": "2026-11-24T09:05:54.228Z",
+       "t_start": "2026-11-24T09:05:53.346Z",
+       "url": "https://blockstream.info/api/tx/12f34b58b04dfb0233ce889f674781c0e0c7ba95482cca469125af41a78d13b3/hex"
+      },
+      {
+       "bytes": 144,
+       "elapsed_ms": 885,
+       "file": "raw/r1/blockstream/016.body",
+       "http_status": 200,
+       "key": "status:12f34b58b04dfb0233ce889f674781c0e0c7ba95482cca469125af41a78d13b3",
+       "sha256": "c8fcc77e93eb496e79b119a98084a4b5051ce81ea0981c2a123c2a9ff70bb048",
+       "t_end": "2026-11-24T09:05:55.113Z",
+       "t_start": "2026-11-24T09:05:54.228Z",
+       "url": "https://blockstream.info/api/tx/12f34b58b04dfb0233ce889f674781c0e0c7ba95482cca469125af41a78d13b3/status"
+      },
+      {
+       "bytes": 3241,
+       "elapsed_ms": 886,
+       "file": "raw/r1/blockstream/017.body",
+       "http_status": 200,
+       "key": "outspends:12f34b58b04dfb0233ce889f674781c0e0c7ba95482cca469125af41a78d13b3",
+       "sha256": "0ff71bfafe5413863fb875f0a51786e092544e20a5995b1b5605933d1810b7fd",
+       "t_end": "2026-11-24T09:05:55.999Z",
+       "t_start": "2026-11-24T09:05:55.113Z",
+       "url": "https://blockstream.info/api/tx/12f34b58b04dfb0233ce889f674781c0e0c7ba95482cca469125af41a78d13b3/outspends"
+      },
+      {
+       "bytes": 452,
+       "elapsed_ms": 897,
+       "file": "raw/r1/blockstream/018.body",
+       "http_status": 200,
+       "key": "hex:d8c38d06fe7ea6adf44c5cc2cbf50083ec9cd8a3fc6c537e8d39db30639e8a77",
+       "sha256": "c9f5912e0b5c3ad41b1a2950a7bd14dd4cd53a0ed73ad4684aef3695a7cf89fc",
+       "t_end": "2026-11-24T09:05:56.896Z",
+       "t_start": "2026-11-24T09:05:55.999Z",
+       "url": "https://blockstream.info/api/tx/d8c38d06fe7ea6adf44c5cc2cbf50083ec9cd8a3fc6c537e8d39db30639e8a77/hex"
+      },
+      {
+       "bytes": 144,
+       "elapsed_ms": 890,
+       "file": "raw/r1/blockstream/019.body",
+       "http_status": 200,
+       "key": "status:d8c38d06fe7ea6adf44c5cc2cbf50083ec9cd8a3fc6c537e8d39db30639e8a77",
+       "sha256": "dae80ec31ee555b26940a9063ed4c46896c6a79d61abaf4b48d76351276025d2",
+       "t_end": "2026-11-24T09:05:57.787Z",
+       "t_start": "2026-11-24T09:05:56.896Z",
+       "url": "https://blockstream.info/api/tx/d8c38d06fe7ea6adf44c5cc2cbf50083ec9cd8a3fc6c537e8d39db30639e8a77/status"
+      },
+      {
+       "bytes": 268,
+       "elapsed_ms": 879,
+       "file": "raw/r1/blockstream/020.body",
+       "http_status": 200,
+       "key": "outspends:d8c38d06fe7ea6adf44c5cc2cbf50083ec9cd8a3fc6c537e8d39db30639e8a77",
+       "sha256": "1d219d765d742823a757c6e849db36239e19b3d43cffee2b670b6ad03698a2e2",
+       "t_end": "2026-11-24T09:05:58.666Z",
+       "t_start": "2026-11-24T09:05:57.787Z",
+       "url": "https://blockstream.info/api/tx/d8c38d06fe7ea6adf44c5cc2cbf50083ec9cd8a3fc6c537e8d39db30639e8a77/outspends"
+      },
+      {
+       "bytes": 6284,
+       "elapsed_ms": 877,
+       "file": "raw/r1/blockstream/021.body",
+       "http_status": 200,
+       "key": "hex:17e4e323cfbc68d7f0071cad09364e8193eedf8fefbcbd8a21b4b65717a4b3d3",
+       "sha256": "a7b9b29128a914f5a646caa9b85d4abea9042a6e6f9325f011ef28bf86bfcc3a",
+       "t_end": "2026-11-24T09:05:59.544Z",
+       "t_start": "2026-11-24T09:05:58.666Z",
+       "url": "https://blockstream.info/api/tx/17e4e323cfbc68d7f0071cad09364e8193eedf8fefbcbd8a21b4b65717a4b3d3/hex"
+      },
+      {
+       "bytes": 144,
+       "elapsed_ms": 879,
+       "file": "raw/r1/blockstream/022.body",
+       "http_status": 200,
+       "key": "status:17e4e323cfbc68d7f0071cad09364e8193eedf8fefbcbd8a21b4b65717a4b3d3",
+       "sha256": "ee4681722aac0460a112b0973c9dabfe6f2fe624481c523eba3db27e11664952",
+       "t_end": "2026-11-24T09:06:00.424Z",
+       "t_start": "2026-11-24T09:05:59.544Z",
+       "url": "https://blockstream.info/api/tx/17e4e323cfbc68d7f0071cad09364e8193eedf8fefbcbd8a21b4b65717a4b3d3/status"
+      },
+      {
+       "bytes": 252,
+       "elapsed_ms": 882,
+       "file": "raw/r1/blockstream/023.body",
+       "http_status": 200,
+       "key": "outspends:17e4e323cfbc68d7f0071cad09364e8193eedf8fefbcbd8a21b4b65717a4b3d3",
+       "sha256": "10fbaf452fe81cc2d0fddb613fa87681c04bc23108c2cb3e622e809b68c17666",
+       "t_end": "2026-11-24T09:06:01.306Z",
+       "t_start": "2026-11-24T09:06:00.424Z",
+       "url": "https://blockstream.info/api/tx/17e4e323cfbc68d7f0071cad09364e8193eedf8fefbcbd8a21b4b65717a4b3d3/outspends"
+      },
+      {
+       "bytes": 1744,
+       "elapsed_ms": 876,
+       "file": "raw/r1/blockstream/024.body",
+       "http_status": 200,
+       "key": "hex:7c432398c7631600af01695c9767eff109cbfae4f7ecccaff388043a474d4f1e",
+       "sha256": "f1453bd7ce3ca369eac06456252115b1c444d579f1b89506c3154df0ef53a656",
+       "t_end": "2026-11-24T09:06:02.182Z",
+       "t_start": "2026-11-24T09:06:01.306Z",
+       "url": "https://blockstream.info/api/tx/7c432398c7631600af01695c9767eff109cbfae4f7ecccaff388043a474d4f1e/hex"
+      },
+      {
+       "bytes": 144,
+       "elapsed_ms": 898,
+       "file": "raw/r1/blockstream/025.body",
+       "http_status": 200,
+       "key": "status:7c432398c7631600af01695c9767eff109cbfae4f7ecccaff388043a474d4f1e",
+       "sha256": "ff77c45df25d12aadc9737e1418248b0d30ced3293ce8efcda77ccaa4cd62650",
+       "t_end": "2026-11-24T09:06:03.080Z",
+       "t_start": "2026-11-24T09:06:02.182Z",
+       "url": "https://blockstream.info/api/tx/7c432398c7631600af01695c9767eff109cbfae4f7ecccaff388043a474d4f1e/status"
+      },
+      {
+       "bytes": 5282,
+       "elapsed_ms": 1050,
+       "file": "raw/r1/blockstream/026.body",
+       "http_status": 200,
+       "key": "outspends:7c432398c7631600af01695c9767eff109cbfae4f7ecccaff388043a474d4f1e",
+       "sha256": "4785fc8da2aaa7aacc8e190b38c57d7415e90d0e5406c04b3a59067425be31c3",
+       "t_end": "2026-11-24T09:06:04.131Z",
+       "t_start": "2026-11-24T09:06:03.081Z",
+       "url": "https://blockstream.info/api/tx/7c432398c7631600af01695c9767eff109cbfae4f7ecccaff388043a474d4f1e/outspends"
+      },
+      {
+       "bytes": 36110,
+       "elapsed_ms": 1083,
+       "file": "raw/r1/blockstream/027.body",
+       "http_status": 200,
+       "key": "hex:5d45587cfd1d5b0fb826805541da7d94c61fe432259e68ee26f4a04544384164",
+       "sha256": "e1bf297adec019049cf7df433cd68e182cd8a7660ab3e09d56ba47a89646901f",
+       "t_end": "2026-11-24T09:06:05.215Z",
+       "t_start": "2026-11-24T09:06:04.131Z",
+       "url": "https://blockstream.info/api/tx/5d45587cfd1d5b0fb826805541da7d94c61fe432259e68ee26f4a04544384164/hex"
+      },
+      {
+       "bytes": 144,
+       "elapsed_ms": 876,
+       "file": "raw/r1/blockstream/028.body",
+       "http_status": 200,
+       "key": "status:5d45587cfd1d5b0fb826805541da7d94c61fe432259e68ee26f4a04544384164",
+       "sha256": "73e43e055c55461ad31bc6e82ce63608d0b9ca8282664859ab9a282e08eb033b",
+       "t_end": "2026-11-24T09:06:06.091Z",
+       "t_start": "2026-11-24T09:06:05.215Z",
+       "url": "https://blockstream.info/api/tx/5d45587cfd1d5b0fb826805541da7d94c61fe432259e68ee26f4a04544384164/status"
+      },
+      {
+       "bytes": 9267,
+       "elapsed_ms": 907,
+       "file": "raw/r1/blockstream/029.body",
+       "http_status": 200,
+       "key": "outspends:5d45587cfd1d5b0fb826805541da7d94c61fe432259e68ee26f4a04544384164",
+       "sha256": "62e6908d6ee4c4fb7bdc264cea509b103440af007ca40e92f3750e973f63318e",
+       "t_end": "2026-11-24T09:06:06.999Z",
+       "t_start": "2026-11-24T09:06:06.091Z",
+       "url": "https://blockstream.info/api/tx/5d45587cfd1d5b0fb826805541da7d94c61fe432259e68ee26f4a04544384164/outspends"
+      },
+      {
+       "bytes": 17728,
+       "elapsed_ms": 922,
+       "file": "raw/r1/blockstream/030.body",
+       "http_status": 200,
+       "key": "hex:08389f34c98c606322740c0be6a7125d9860bb8d5cb182c02f98461e5fa6cd15",
+       "sha256": "bcffdc2b536a6508900f44fb2053d099f3d5a752c47f11b98f59b0c5880f1000",
+       "t_end": "2026-11-24T09:06:07.921Z",
+       "t_start": "2026-11-24T09:06:06.999Z",
+       "url": "https://blockstream.info/api/tx/08389f34c98c606322740c0be6a7125d9860bb8d5cb182c02f98461e5fa6cd15/hex"
+      },
+      {
+       "bytes": 144,
+       "elapsed_ms": 884,
+       "file": "raw/r1/blockstream/031.body",
+       "http_status": 200,
+       "key": "status:08389f34c98c606322740c0be6a7125d9860bb8d5cb182c02f98461e5fa6cd15",
+       "sha256": "3df9c0a1e1a5eb01c09ff53b73c8f983ae0645f1240a8209c38ba803e345de8d",
+       "t_end": "2026-11-24T09:06:08.806Z",
+       "t_start": "2026-11-24T09:06:07.922Z",
+       "url": "https://blockstream.info/api/tx/08389f34c98c606322740c0be6a7125d9860bb8d5cb182c02f98461e5fa6cd15/status"
+      },
+      {
+       "bytes": 46248,
+       "elapsed_ms": 1100,
+       "file": "raw/r1/blockstream/032.body",
+       "http_status": 200,
+       "key": "outspends:08389f34c98c606322740c0be6a7125d9860bb8d5cb182c02f98461e5fa6cd15",
+       "sha256": "2b020830504c16c0bfafdfe4ce15e4923323f962e08b602d5eded8281a2a7868",
+       "t_end": "2026-11-24T09:06:09.907Z",
+       "t_start": "2026-11-24T09:06:08.806Z",
+       "url": "https://blockstream.info/api/tx/08389f34c98c606322740c0be6a7125d9860bb8d5cb182c02f98461e5fa6cd15/outspends"
+      },
+      {
+       "bytes": 64,
+       "elapsed_ms": 893,
+       "file": "raw/r1/blockstream/033.body",
+       "http_status": 200,
+       "key": "tip_after_hash",
+       "sha256": "0795a57a99b4aca34425665a7e02533f424a6d9c40265c82f75aa8f2f8d87f32",
+       "t_end": "2026-11-24T09:06:10.801Z",
+       "t_start": "2026-11-24T09:06:09.907Z",
+       "url": "https://blockstream.info/api/blocks/tip/hash"
+      },
+      {
+       "bytes": 6,
+       "elapsed_ms": 873,
+       "file": "raw/r1/blockstream/034.body",
+       "http_status": 200,
+       "key": "tip_after_height",
+       "sha256": "1feecf8006c3738d2d1f7f46f0bc52b98968a16fb376460a63361e09378bd1bb",
+       "t_end": "2026-11-24T09:06:11.675Z",
+       "t_start": "2026-11-24T09:06:10.801Z",
+       "url": "https://blockstream.info/api/blocks/tip/height"
+      },
+      {
+       "bytes": 55,
+       "elapsed_ms": 877,
+       "file": "raw/r1/blockstream/035.body",
+       "http_status": 200,
+       "key": "tipstatus:00000000000000000000614edfbe082ed1b23371f34068273fb6c19a8800d8c7",
+       "sha256": "53faf56fb53ecfe16efeba512ba64a3d40ad5a7be45ae4ffca2056f575ec5b01",
+       "t_end": "2026-11-24T09:06:12.552Z",
+       "t_start": "2026-11-24T09:06:11.675Z",
+       "url": "https://blockstream.info/api/block/00000000000000000000614edfbe082ed1b23371f34068273fb6c19a8800d8c7/status"
+      }
+     ]
+    },
+    "mempool": {
+     "requests": [
+      {
+       "bytes": 6,
+       "elapsed_ms": 338,
+       "file": "raw/r1/mempool/000.body",
+       "http_status": 200,
+       "key": "tip_before_height",
+       "sha256": "1feecf8006c3738d2d1f7f46f0bc52b98968a16fb376460a63361e09378bd1bb",
+       "t_end": "2026-11-24T09:06:12.890Z",
+       "t_start": "2026-11-24T09:06:12.552Z",
+       "url": "https://mempool.space/api/blocks/tip/height"
+      },
+      {
+       "bytes": 64,
+       "elapsed_ms": 334,
+       "file": "raw/r1/mempool/001.body",
+       "http_status": 200,
+       "key": "tip_before_hash",
+       "sha256": "0795a57a99b4aca34425665a7e02533f424a6d9c40265c82f75aa8f2f8d87f32",
+       "t_end": "2026-11-24T09:06:13.224Z",
+       "t_start": "2026-11-24T09:06:12.890Z",
+       "url": "https://mempool.space/api/blocks/tip/hash"
+      },
+      {
+       "bytes": 276,
+       "elapsed_ms": 329,
+       "file": "raw/r1/mempool/002.body",
+       "http_status": 200,
+       "key": "address",
+       "sha256": "8864a9b32558e01a88c07aebcca6cba379c3aec216db63cdd54dc0bc9f865b2a",
+       "t_end": "2026-11-24T09:06:13.554Z",
+       "t_start": "2026-11-24T09:06:13.224Z",
+       "url": "https://mempool.space/api/address/1QKBaU6WAeycb3DbKbLBkX7vJiaS8r42Xo"
+      },
+      {
+       "bytes": 260759,
+       "elapsed_ms": 1734,
+       "file": "raw/r1/mempool/003.body",
+       "http_status": 200,
+       "key": "chain_page_00",
+       "sha256": "ca86799c88f63d48062dd4dff39251597fd632511dcc4b609ee40e3e723fdb45",
+       "t_end": "2026-11-24T09:06:15.289Z",
+       "t_start": "2026-11-24T09:06:13.554Z",
+       "url": "https://mempool.space/api/address/1QKBaU6WAeycb3DbKbLBkX7vJiaS8r42Xo/txs/chain"
+      },
+      {
+       "bytes": 2,
+       "elapsed_ms": 328,
+       "file": "raw/r1/mempool/004.body",
+       "http_status": 200,
+       "key": "mempool_txs",
+       "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+       "t_end": "2026-11-24T09:06:15.618Z",
+       "t_start": "2026-11-24T09:06:15.290Z",
+       "url": "https://mempool.space/api/address/1QKBaU6WAeycb3DbKbLBkX7vJiaS8r42Xo/txs/mempool"
+      },
+      {
+       "bytes": 1781,
+       "elapsed_ms": 349,
+       "file": "raw/r1/mempool/005.body",
+       "http_status": 200,
+       "key": "utxo",
+       "sha256": "7198e448b535fb91057c2304b2e43a33e559ccd94081d7b5da5b917f94173995",
+       "t_end": "2026-11-24T09:06:15.968Z",
+       "t_start": "2026-11-24T09:06:15.618Z",
+       "url": "https://mempool.space/api/address/1QKBaU6WAeycb3DbKbLBkX7vJiaS8r42Xo/utxo"
+      },
+      {
+       "bytes": 450,
+       "elapsed_ms": 330,
+       "file": "raw/r1/mempool/006.body",
+       "http_status": 200,
+       "key": "hex:918c913baad2ae7a3b444350e047559434a4441041b5ba5050d09b8b54ef68b7",
+       "sha256": "cac465f1ef9c0c7abddc4d32b4078c2794803763fce8feca6695c79abbe38b02",
+       "t_end": "2026-11-24T09:06:16.298Z",
+       "t_start": "2026-11-24T09:06:15.968Z",
+       "url": "https://mempool.space/api/tx/918c913baad2ae7a3b444350e047559434a4441041b5ba5050d09b8b54ef68b7/hex"
+      },
+      {
+       "bytes": 144,
+       "elapsed_ms": 326,
+       "file": "raw/r1/mempool/007.body",
+       "http_status": 200,
+       "key": "status:918c913baad2ae7a3b444350e047559434a4441041b5ba5050d09b8b54ef68b7",
+       "sha256": "bac9c434ae970052982e4ce186d5f49dc5b507d5beb10c47f1105e3ff712bb70",
+       "t_end": "2026-11-24T09:06:16.625Z",
+       "t_start": "2026-11-24T09:06:16.298Z",
+       "url": "https://mempool.space/api/tx/918c913baad2ae7a3b444350e047559434a4441041b5ba5050d09b8b54ef68b7/status"
+      },
+      {
+       "bytes": 268,
+       "elapsed_ms": 334,
+       "file": "raw/r1/mempool/008.body",
+       "http_status": 200,
+       "key": "outspends:918c913baad2ae7a3b444350e047559434a4441041b5ba5050d09b8b54ef68b7",
+       "sha256": "16d3f8e9d518fe9d9bd44c1144342ba0a9b2cabfcc0f38204c48f30060936802",
+       "t_end": "2026-11-24T09:06:16.959Z",
+       "t_start": "2026-11-24T09:06:16.625Z",
+       "url": "https://mempool.space/api/tx/918c913baad2ae7a3b444350e047559434a4441041b5ba5050d09b8b54ef68b7/outspends"
+      },
+      {
+       "bytes": 382,
+       "elapsed_ms": 326,
+       "file": "raw/r1/mempool/009.body",
+       "http_status": 200,
+       "key": "hex:2b4f5f05b1377845ff0f8c1552dc901172ee2da9508b08d5c951366f74fbbf63",
+       "sha256": "d1886b13a4c57d5acbfd836a340cebc6ff7a82ab6155e5229600557770b19399",
+       "t_end": "2026-11-24T09:06:17.286Z",
+       "t_start": "2026-11-24T09:06:16.959Z",
+       "url": "https://mempool.space/api/tx/2b4f5f05b1377845ff0f8c1552dc901172ee2da9508b08d5c951366f74fbbf63/hex"
+      },
+      {
+       "bytes": 144,
+       "elapsed_ms": 327,
+       "file": "raw/r1/mempool/010.body",
+       "http_status": 200,
+       "key": "status:2b4f5f05b1377845ff0f8c1552dc901172ee2da9508b08d5c951366f74fbbf63",
+       "sha256": "221131e977d1779c97ae17c0e95bb5f1dd81ad0ab74c11df5c2e9e66e9294929",
+       "t_end": "2026-11-24T09:06:17.614Z",
+       "t_start": "2026-11-24T09:06:17.286Z",
+       "url": "https://mempool.space/api/tx/2b4f5f05b1377845ff0f8c1552dc901172ee2da9508b08d5c951366f74fbbf63/status"
+      },
+      {
+       "bytes": 17,
+       "elapsed_ms": 333,
+       "file": "raw/r1/mempool/011.body",
+       "http_status": 200,
+       "key": "outspends:2b4f5f05b1377845ff0f8c1552dc901172ee2da9508b08d5c951366f74fbbf63",
+       "sha256": "e062e2a6db656cc08172a504cee85612101aca6b18fbfcf9efc735aaa237bd6a",
+       "t_end": "2026-11-24T09:06:17.947Z",
+       "t_start": "2026-11-24T09:06:17.614Z",
+       "url": "https://mempool.space/api/tx/2b4f5f05b1377845ff0f8c1552dc901172ee2da9508b08d5c951366f74fbbf63/outspends"
+      },
+      {
+       "bytes": 382,
+       "elapsed_ms": 327,
+       "file": "raw/r1/mempool/012.body",
+       "http_status": 200,
+       "key": "hex:dd23b1079095ec6821f003b5a1acd5942152f478411157d717c8bddf8f67fb94",
+       "sha256": "7c68218ded463ad193ceb01909590907d61b1b75620dd5378310cdc11bc352fa",
+       "t_end": "2026-11-24T09:06:18.275Z",
+       "t_start": "2026-11-24T09:06:17.947Z",
+       "url": "https://mempool.space/api/tx/dd23b1079095ec6821f003b5a1acd5942152f478411157d717c8bddf8f67fb94/hex"
+      },
+      {
+       "bytes": 144,
+       "elapsed_ms": 335,
+       "file": "raw/r1/mempool/013.body",
+       "http_status": 200,
+       "key": "status:dd23b1079095ec6821f003b5a1acd5942152f478411157d717c8bddf8f67fb94",
+       "sha256": "549e9ffded4002ba0389158861deed9746341121a57cf92057453596f0616a7d",
+       "t_end": "2026-11-24T09:06:18.611Z",
+       "t_start": "2026-11-24T09:06:18.275Z",
+       "url": "https://mempool.space/api/tx/dd23b1079095ec6821f003b5a1acd5942152f478411157d717c8bddf8f67fb94/status"
+      },
+      {
+       "bytes": 17,
+       "elapsed_ms": 327,
+       "file": "raw/r1/mempool/014.body",
+       "http_status": 200,
+       "key": "outspends:dd23b1079095ec6821f003b5a1acd5942152f478411157d717c8bddf8f67fb94",
+       "sha256": "e062e2a6db656cc08172a504cee85612101aca6b18fbfcf9efc735aaa237bd6a",
+       "t_end": "2026-11-24T09:06:18.939Z",
+       "t_start": "2026-11-24T09:06:18.611Z",
+       "url": "https://mempool.space/api/tx/dd23b1079095ec6821f003b5a1acd5942152f478411157d717c8bddf8f67fb94/outspends"
+      },
+      {
+       "bytes": 6100,
+       "elapsed_ms": 327,
+       "file": "raw/r1/mempool/015.body",
+       "http_status": 200,
+       "key": "hex:12f34b58b04dfb0233ce889f674781c0e0c7ba95482cca469125af41a78d13b3",
+       "sha256": "79a3abae9e842d61e2a3251d50704381db704e1844da436f678730fe0e63e56b",
+       "t_end": "2026-11-24T09:06:19.267Z",
+       "t_start": "2026-11-24T09:06:18.939Z",
+       "url": "https://mempool.space/api/tx/12f34b58b04dfb0233ce889f674781c0e0c7ba95482cca469125af41a78d13b3/hex"
+      },
+      {
+       "bytes": 144,
+       "elapsed_ms": 326,
+       "file": "raw/r1/mempool/016.body",
+       "http_status": 200,
+       "key": "status:12f34b58b04dfb0233ce889f674781c0e0c7ba95482cca469125af41a78d13b3",
+       "sha256": "c8fcc77e93eb496e79b119a98084a4b5051ce81ea0981c2a123c2a9ff70bb048",
+       "t_end": "2026-11-24T09:06:19.593Z",
+       "t_start": "2026-11-24T09:06:19.267Z",
+       "url": "https://mempool.space/api/tx/12f34b58b04dfb0233ce889f674781c0e0c7ba95482cca469125af41a78d13b3/status"
+      },
+      {
+       "bytes": 3241,
+       "elapsed_ms": 338,
+       "file": "raw/r1/mempool/017.body",
+       "http_status": 200,
+       "key": "outspends:12f34b58b04dfb0233ce889f674781c0e0c7ba95482cca469125af41a78d13b3",
+       "sha256": "0ff71bfafe5413863fb875f0a51786e092544e20a5995b1b5605933d1810b7fd",
+       "t_end": "2026-11-24T09:06:19.932Z",
+       "t_start": "2026-11-24T09:06:19.593Z",
+       "url": "https://mempool.space/api/tx/12f34b58b04dfb0233ce889f674781c0e0c7ba95482cca469125af41a78d13b3/outspends"
+      },
+      {
+       "bytes": 452,
+       "elapsed_ms": 328,
+       "file": "raw/r1/mempool/018.body",
+       "http_status": 200,
+       "key": "hex:d8c38d06fe7ea6adf44c5cc2cbf50083ec9cd8a3fc6c537e8d39db30639e8a77",
+       "sha256": "c9f5912e0b5c3ad41b1a2950a7bd14dd4cd53a0ed73ad4684aef3695a7cf89fc",
+       "t_end": "2026-11-24T09:06:20.260Z",
+       "t_start": "2026-11-24T09:06:19.932Z",
+       "url": "https://mempool.space/api/tx/d8c38d06fe7ea6adf44c5cc2cbf50083ec9cd8a3fc6c537e8d39db30639e8a77/hex"
+      },
+      {
+       "bytes": 144,
+       "elapsed_ms": 327,
+       "file": "raw/r1/mempool/019.body",
+       "http_status": 200,
+       "key": "status:d8c38d06fe7ea6adf44c5cc2cbf50083ec9cd8a3fc6c537e8d39db30639e8a77",
+       "sha256": "dae80ec31ee555b26940a9063ed4c46896c6a79d61abaf4b48d76351276025d2",
+       "t_end": "2026-11-24T09:06:20.587Z",
+       "t_start": "2026-11-24T09:06:20.260Z",
+       "url": "https://mempool.space/api/tx/d8c38d06fe7ea6adf44c5cc2cbf50083ec9cd8a3fc6c537e8d39db30639e8a77/status"
+      },
+      {
+       "bytes": 268,
+       "elapsed_ms": 328,
+       "file": "raw/r1/mempool/020.body",
+       "http_status": 200,
+       "key": "outspends:d8c38d06fe7ea6adf44c5cc2cbf50083ec9cd8a3fc6c537e8d39db30639e8a77",
+       "sha256": "1d219d765d742823a757c6e849db36239e19b3d43cffee2b670b6ad03698a2e2",
+       "t_end": "2026-11-24T09:06:20.915Z",
+       "t_start": "2026-11-24T09:06:20.587Z",
+       "url": "https://mempool.space/api/tx/d8c38d06fe7ea6adf44c5cc2cbf50083ec9cd8a3fc6c537e8d39db30639e8a77/outspends"
+      },
+      {
+       "bytes": 6284,
+       "elapsed_ms": 335,
+       "file": "raw/r1/mempool/021.body",
+       "http_status": 200,
+       "key": "hex:17e4e323cfbc68d7f0071cad09364e8193eedf8fefbcbd8a21b4b65717a4b3d3",
+       "sha256": "a7b9b29128a914f5a646caa9b85d4abea9042a6e6f9325f011ef28bf86bfcc3a",
+       "t_end": "2026-11-24T09:06:21.251Z",
+       "t_start": "2026-11-24T09:06:20.916Z",
+       "url": "https://mempool.space/api/tx/17e4e323cfbc68d7f0071cad09364e8193eedf8fefbcbd8a21b4b65717a4b3d3/hex"
+      },
+      {
+       "bytes": 144,
+       "elapsed_ms": 326,
+       "file": "raw/r1/mempool/022.body",
+       "http_status": 200,
+       "key": "status:17e4e323cfbc68d7f0071cad09364e8193eedf8fefbcbd8a21b4b65717a4b3d3",
+       "sha256": "ee4681722aac0460a112b0973c9dabfe6f2fe624481c523eba3db27e11664952",
+       "t_end": "2026-11-24T09:06:21.578Z",
+       "t_start": "2026-11-24T09:06:21.251Z",
+       "url": "https://mempool.space/api/tx/17e4e323cfbc68d7f0071cad09364e8193eedf8fefbcbd8a21b4b65717a4b3d3/status"
+      },
+      {
+       "bytes": 252,
+       "elapsed_ms": 329,
+       "file": "raw/r1/mempool/023.body",
+       "http_status": 200,
+       "key": "outspends:17e4e323cfbc68d7f0071cad09364e8193eedf8fefbcbd8a21b4b65717a4b3d3",
+       "sha256": "10fbaf452fe81cc2d0fddb613fa87681c04bc23108c2cb3e622e809b68c17666",
+       "t_end": "2026-11-24T09:06:21.907Z",
+       "t_start": "2026-11-24T09:06:21.578Z",
+       "url": "https://mempool.space/api/tx/17e4e323cfbc68d7f0071cad09364e8193eedf8fefbcbd8a21b4b65717a4b3d3/outspends"
+      },
+      {
+       "bytes": 1744,
+       "elapsed_ms": 330,
+       "file": "raw/r1/mempool/024.body",
+       "http_status": 200,
+       "key": "hex:7c432398c7631600af01695c9767eff109cbfae4f7ecccaff388043a474d4f1e",
+       "sha256": "f1453bd7ce3ca369eac06456252115b1c444d579f1b89506c3154df0ef53a656",
+       "t_end": "2026-11-24T09:06:22.238Z",
+       "t_start": "2026-11-24T09:06:21.908Z",
+       "url": "https://mempool.space/api/tx/7c432398c7631600af01695c9767eff109cbfae4f7ecccaff388043a474d4f1e/hex"
+      },
+      {
+       "bytes": 144,
+       "elapsed_ms": 326,
+       "file": "raw/r1/mempool/025.body",
+       "http_status": 200,
+       "key": "status:7c432398c7631600af01695c9767eff109cbfae4f7ecccaff388043a474d4f1e",
+       "sha256": "ff77c45df25d12aadc9737e1418248b0d30ced3293ce8efcda77ccaa4cd62650",
+       "t_end": "2026-11-24T09:06:22.565Z",
+       "t_start": "2026-11-24T09:06:22.238Z",
+       "url": "https://mempool.space/api/tx/7c432398c7631600af01695c9767eff109cbfae4f7ecccaff388043a474d4f1e/status"
+      },
+      {
+       "bytes": 5282,
+       "elapsed_ms": 336,
+       "file": "raw/r1/mempool/026.body",
+       "http_status": 200,
+       "key": "outspends:7c432398c7631600af01695c9767eff109cbfae4f7ecccaff388043a474d4f1e",
+       "sha256": "4785fc8da2aaa7aacc8e190b38c57d7415e90d0e5406c04b3a59067425be31c3",
+       "t_end": "2026-11-24T09:06:22.902Z",
+       "t_start": "2026-11-24T09:06:22.565Z",
+       "url": "https://mempool.space/api/tx/7c432398c7631600af01695c9767eff109cbfae4f7ecccaff388043a474d4f1e/outspends"
+      },
+      {
+       "bytes": 36110,
+       "elapsed_ms": 345,
+       "file": "raw/r1/mempool/027.body",
+       "http_status": 200,
+       "key": "hex:5d45587cfd1d5b0fb826805541da7d94c61fe432259e68ee26f4a04544384164",
+       "sha256": "e1bf297adec019049cf7df433cd68e182cd8a7660ab3e09d56ba47a89646901f",
+       "t_end": "2026-11-24T09:06:23.248Z",
+       "t_start": "2026-11-24T09:06:22.902Z",
+       "url": "https://mempool.space/api/tx/5d45587cfd1d5b0fb826805541da7d94c61fe432259e68ee26f4a04544384164/hex"
+      },
+      {
+       "bytes": 144,
+       "elapsed_ms": 328,
+       "file": "raw/r1/mempool/028.body",
+       "http_status": 200,
+       "key": "status:5d45587cfd1d5b0fb826805541da7d94c61fe432259e68ee26f4a04544384164",
+       "sha256": "73e43e055c55461ad31bc6e82ce63608d0b9ca8282664859ab9a282e08eb033b",
+       "t_end": "2026-11-24T09:06:23.576Z",
+       "t_start": "2026-11-24T09:06:23.248Z",
+       "url": "https://mempool.space/api/tx/5d45587cfd1d5b0fb826805541da7d94c61fe432259e68ee26f4a04544384164/status"
+      },
+      {
+       "bytes": 9267,
+       "elapsed_ms": 332,
+       "file": "raw/r1/mempool/029.body",
+       "http_status": 200,
+       "key": "outspends:5d45587cfd1d5b0fb826805541da7d94c61fe432259e68ee26f4a04544384164",
+       "sha256": "62e6908d6ee4c4fb7bdc264cea509b103440af007ca40e92f3750e973f63318e",
+       "t_end": "2026-11-24T09:06:23.908Z",
+       "t_start": "2026-11-24T09:06:23.576Z",
+       "url": "https://mempool.space/api/tx/5d45587cfd1d5b0fb826805541da7d94c61fe432259e68ee26f4a04544384164/outspends"
+      },
+      {
+       "bytes": 17728,
+       "elapsed_ms": 328,
+       "file": "raw/r1/mempool/030.body",
+       "http_status": 200,
+       "key": "hex:08389f34c98c606322740c0be6a7125d9860bb8d5cb182c02f98461e5fa6cd15",
+       "sha256": "bcffdc2b536a6508900f44fb2053d099f3d5a752c47f11b98f59b0c5880f1000",
+       "t_end": "2026-11-24T09:06:24.237Z",
+       "t_start": "2026-11-24T09:06:23.908Z",
+       "url": "https://mempool.space/api/tx/08389f34c98c606322740c0be6a7125d9860bb8d5cb182c02f98461e5fa6cd15/hex"
+      },
+      {
+       "bytes": 144,
+       "elapsed_ms": 326,
+       "file": "raw/r1/mempool/031.body",
+       "http_status": 200,
+       "key": "status:08389f34c98c606322740c0be6a7125d9860bb8d5cb182c02f98461e5fa6cd15",
+       "sha256": "3df9c0a1e1a5eb01c09ff53b73c8f983ae0645f1240a8209c38ba803e345de8d",
+       "t_end": "2026-11-24T09:06:24.563Z",
+       "t_start": "2026-11-24T09:06:24.237Z",
+       "url": "https://mempool.space/api/tx/08389f34c98c606322740c0be6a7125d9860bb8d5cb182c02f98461e5fa6cd15/status"
+      },
+      {
+       "bytes": 46248,
+       "elapsed_ms": 356,
+       "file": "raw/r1/mempool/032.body",
+       "http_status": 200,
+       "key": "outspends:08389f34c98c606322740c0be6a7125d9860bb8d5cb182c02f98461e5fa6cd15",
+       "sha256": "2b020830504c16c0bfafdfe4ce15e4923323f962e08b602d5eded8281a2a7868",
+       "t_end": "2026-11-24T09:06:24.920Z",
+       "t_start": "2026-11-24T09:06:24.563Z",
+       "url": "https://mempool.space/api/tx/08389f34c98c606322740c0be6a7125d9860bb8d5cb182c02f98461e5fa6cd15/outspends"
+      },
+      {
+       "bytes": 64,
+       "elapsed_ms": 327,
+       "file": "raw/r1/mempool/033.body",
+       "http_status": 200,
+       "key": "tip_after_hash",
+       "sha256": "0795a57a99b4aca34425665a7e02533f424a6d9c40265c82f75aa8f2f8d87f32",
+       "t_end": "2026-11-24T09:06:25.248Z",
+       "t_start": "2026-11-24T09:06:24.921Z",
+       "url": "https://mempool.space/api/blocks/tip/hash"
+      },
+      {
+       "bytes": 6,
+       "elapsed_ms": 328,
+       "file": "raw/r1/mempool/034.body",
+       "http_status": 200,
+       "key": "tip_after_height",
+       "sha256": "1feecf8006c3738d2d1f7f46f0bc52b98968a16fb376460a63361e09378bd1bb",
+       "t_end": "2026-11-24T09:06:25.576Z",
+       "t_start": "2026-11-24T09:06:25.248Z",
+       "url": "https://mempool.space/api/blocks/tip/height"
+      },
+      {
+       "bytes": 55,
+       "elapsed_ms": 330,
+       "file": "raw/r1/mempool/035.body",
+       "http_status": 200,
+       "key": "tipstatus:00000000000000000000614edfbe082ed1b23371f34068273fb6c19a8800d8c7",
+       "sha256": "53faf56fb53ecfe16efeba512ba64a3d40ad5a7be45ae4ffca2056f575ec5b01",
+       "t_end": "2026-11-24T09:06:25.907Z",
+       "t_start": "2026-11-24T09:06:25.576Z",
+       "url": "https://mempool.space/api/block/00000000000000000000614edfbe082ed1b23371f34068273fb6c19a8800d8c7/status"
+      }
+     ]
+    }
+   },
+   "round": 1
+  }
+ ],
+ "schema": "prize-state/v1"
+}

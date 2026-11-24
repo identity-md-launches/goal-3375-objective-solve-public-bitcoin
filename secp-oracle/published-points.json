@@ -1,0 +1,27 @@
+{
+  "classification": "SYNTHETIC",
+  "provenance": "https://github.com/bitcoin/bips/blob/200f9b26fe0a2f235a2af8b30c4be9f12f6bc9cb/bip-0340/test-vectors.csv",
+  "source_sha256": "34c9d1d9c3a88d524bc80778540dc43f8306ec249a7485293063c376db851c2d",
+  "vectors": [
+    {
+      "index": "0",
+      "scalar_be_hex": "0000000000000000000000000000000000000000000000000000000000000003",
+      "x_hex": "f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9"
+    },
+    {
+      "index": "1",
+      "scalar_be_hex": "b7e151628aed2a6abf7158809cf4f3c762e7160f38b4da56a784d9045190cfef",
+      "x_hex": "dff1d77f2a671c5f36183726db2341be58feae1da2deced843240f7b502ba659"
+    },
+    {
+      "index": "2",
+      "scalar_be_hex": "c90fdaa22168c234c4c6628b80dc1cd129024e088a67cc74020bbea63b14e5c9",
+      "x_hex": "dd308afec5777e13121fa72b9cc1b7cc0139715309b086c960e18fd969774eb8"
+    },
+    {
+      "index": "3",
+      "scalar_be_hex": "0b432b2677937381aef05bb02a66ecd012773062cf3fa2549e44f58ed2401710",
+      "x_hex": "25d1dff95105f5253c4022f628a996ad3a0d95fbf21d468a1b33f8c160d8f517"
+    }
+  ]
+}

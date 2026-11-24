@@ -1,0 +1,131 @@
+--- a/rckangaroo/upstream/RCKangaroo.cpp	2026-11-24 09:07:41.345515658 +0000
++++ b/rckangaroo/upstream/RCKangaroo.cpp	2026-11-24 09:08:04.120786336 +0000
+@@ -14,6 +14,47 @@
+ #include "utils.h"
+ #include "GpuKang.h"
+ 
++// ---- IdentityMD private adapter patch (candidate-fd key sink) ----
++#include <errno.h>
++#ifndef _WIN32
++#include <unistd.h>
++#endif
++
++int gCandidateFd = -1;   // inherited fd for 32 big-endian key bytes; -1 = none
++int gExitCode = 0;       // process exit code
++
++// Write exactly 'len' bytes to the inherited candidate fd. Returns true only on
++// a complete write. No key material is ever logged, even on failure.
++static bool EmitCandidate(const unsigned char* buf, int len)
++{
++	if (gCandidateFd < 0)
++		return false;
++#ifdef _WIN32
++	(void)buf; (void)len;
++	return false; // candidate-fd sink is POSIX-only; fail closed on Windows
++#else
++	int off = 0;
++	while (off < len)
++	{
++		ssize_t n = write(gCandidateFd, buf + off, (size_t)(len - off));
++		if (n < 0)
++		{
++			if (errno == EINTR)
++				continue;
++			return false;
++		}
++		if (n == 0)
++			return false;
++		off += (int)n;
++	}
++	// fsync a regular file; pipes/sockets return EINVAL which is acceptable.
++	if (fsync(gCandidateFd) != 0 && errno != EINVAL && errno != EROFS && errno != ENOTSUP)
++		return false;
++	return true;
++#endif
++}
++// ---- end adapter patch ----
++
+ 
+ EcJMP EcJumps1[JMP_CNT];
+ EcJMP EcJumps2[JMP_CNT];
+@@ -594,6 +635,22 @@
+ 			ci++;
+ 		}
+ 		else
++		if (strcmp(argument, "--candidate-fd") == 0)
++		{
++			if (ci >= argc)
++			{
++				printf("error: missed value after --candidate-fd option\r\n");
++				return false;
++			}
++			gCandidateFd = atoi(argv[ci]);
++			ci++;
++			if (gCandidateFd < 0)
++			{
++				printf("error: invalid value for --candidate-fd option\r\n");
++				return false;
++			}
++		}
++		else
+ 		if (strcmp(argument, "-max") == 0)
+ 		{
+ 			double val = atof(argv[ci]);
+@@ -683,6 +740,12 @@
+ 	if (!IsBench && !gGenMode)
+ 	{
+ 		printf("\r\nMAIN MODE\r\n\r\n");
++		if (gCandidateFd < 0)
++		{
++			fprintf(stderr, "FATAL: real/main mode requires --candidate-fd; refusing to run without a private sink\r\n");
++			gExitCode = 2;
++			goto label_end;
++		}
+ 		EcPoint PntToSolve, PntOfs;
+ 		EcInt pk, pk_found;
+ 
+@@ -719,22 +782,22 @@
+ 			printf("FATAL ERROR: SolvePoint found incorrect key\r\n");
+ 			goto label_end;
+ 		}
+-		//happy end
+-		char s[100];
+-		pk_found.GetHexStr(s);
+-		printf("\r\nPRIVATE KEY: %s\r\n\r\n", s);
+-		FILE* fp = fopen("RESULTS.TXT", "a");
+-		if (fp)
+-		{
+-			fprintf(fp, "PRIVATE KEY: %s\n", s);
+-			fclose(fp);
+-		}
+-		else //we cannot save the key, show error and wait forever so the key is displayed
+-		{
+-			printf("WARNING: Cannot save the key to RESULTS.TXT!\r\n");
+-			while (1)
+-				Sleep(100);
++		//happy end: emit the recovered key ONLY as 32 big-endian bytes to the
++		//inherited --candidate-fd. The key is NEVER written to stdout, stderr or any
++		//file. Fail closed: if the sink is missing or any write fails, scrub the
++		//buffer and exit nonzero WITHOUT disclosing the key.
++		unsigned char be[32];
++		for (int bi = 0; bi < 32; bi++)
++			be[bi] = ((unsigned char*)pk_found.data)[31 - bi];
++		bool emit_ok = EmitCandidate(be, 32);
++		memset(be, 0, sizeof(be));
++		if (!emit_ok)
++		{
++			fprintf(stderr, "FATAL: candidate sink unavailable or write failed; refusing to disclose key\r\n");
++			gExitCode = 2;
++			goto label_end;
+ 		}
++		printf("\r\nSOLVED: candidate written to --candidate-fd (%d bytes)\r\n\r\n", 32);
+ 	}
+ 	else
+ 	{
+@@ -788,5 +851,6 @@
+ 	DeInitEc();
+ 	free(pPntList2);
+ 	free(pPntList);
++	return gExitCode;
+ }
+ 

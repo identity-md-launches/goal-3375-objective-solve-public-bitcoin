@@ -1,50 +1,31 @@
 {
- "tx": {
-  "txid": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-  "vin": [
-   {
-    "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "vout": 0
-   },
-   {
-    "txid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-    "vout": 1
-   }
-  ],
-  "vout": [
-   {
-    "value_sats": 299000,
-    "script_hex": "512046bfc36cb0a801aa7d19aff5ceffc6735d461e99bebd4c6c7fa3b2fbae2c0a6f"
-   }
-  ]
- },
- "prevouts": [
-  {
-   "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-   "vout": 0,
-   "value_sats": 100000,
-   "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac",
-   "authenticated": true
+  "schema": "receipt-check/v1",
+  "network": "mainnet",
+  "synthetic": true,
+  "recipient": "bc1pg6luxm9s4qq65lge4l6ual7xwdw5v85eh675cmrl5we0ht3vpfhswxu0cx",
+  "snapshot": {
+    "address": "1QKBaU6WAeycb3DbKbLBkX7vJiaS8r42Xo",
+    "outpoints": [
+      {
+        "txid": "4cbd9972cc51070ecc9301e22bd01fb19f9708dd86b14770c197668463ab773a",
+        "vout": 0,
+        "value_sats": 100000
+      },
+      {
+        "txid": "4cbd9972cc51070ecc9301e22bd01fb19f9708dd86b14770c197668463ab773a",
+        "vout": 2,
+        "value_sats": 200000
+      }
+    ]
   },
-  {
-   "txid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-   "vout": 1,
-   "value_sats": 200000,
-   "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac",
-   "authenticated": true
-  }
- ],
- "snapshot": {
-  "address": "1QKBaU6WAeycb3DbKbLBkX7vJiaS8r42Xo",
-  "outpoints": [
-   {
-    "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "vout": 0
-   },
-   {
-    "txid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-    "vout": 1
-   }
+  "tx": {
+    "txid": "2b270ba76ebd54a49589fb7611c1f1f0f7205c8ac544586612b9e8d731004c80",
+    "raw_hex": "02000000023a77ab63846697c17047b186dd08979fb11fd02be20193cc0e0751cc7299bd4c0200000000ffffffff3a77ab63846697c17047b186dd08979fb11fd02be20193cc0e0751cc7299bd4c0000000000ffffffff01f88f04000000000022512046bfc36cb0a801aa7d19aff5ceffc6735d461e99bebd4c6c7fa3b2fbae2c0a6f00000000"
+  },
+  "prevouts": [
+    {
+      "txid": "4cbd9972cc51070ecc9301e22bd01fb19f9708dd86b14770c197668463ab773a",
+      "raw_hex": "0200000000010111111111111111111111111111111111111111111111111111111111111111110000000000ffffffff03a0860100000000001976a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88acf4010000000000000151400d0300000000001976a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac01014200000000"
+    }
   ]
- }
 }

@@ -1,207 +1,313 @@
 #!/usr/bin/env python3
-"""Bitcoin Core regtest payment fixture (SYNTHETIC test data only).
-
-Starts a fresh disposable regtest bitcoind (peer networking disabled), creates
-run-only wallets, funds a legacy P2PKH output, spends it to one Taproot (P2TR)
-destination less a fixed fee, signs inside the Core wallet, mines one block and
-verifies input, output script, paid sats and fee from the tx and its prevout.
-Writes a public JSON receipt (no keys, no wallet files).
-
-Usage: regtest_payment.py --bindir DIR [--receipt PATH] [--fee-sats N]
-Standard library only; needs local executables bitcoind and bitcoin-cli.
-"""
-import argparse, json, os, shutil, socket, subprocess, sys, tempfile, time
+"""Offline SYNTHETIC seven-input fixture. Never accepts production keys or RPC nodes."""
+import argparse
+import contextlib
 from decimal import Decimal
+import hashlib
+import json
+import lzma
+import os
+from pathlib import Path
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+import time
 
-SAT = Decimal("100000000")
+ROOT = Path(__file__).resolve().parent
+PROGRAM = '46bfc36cb0a801aa7d19aff5ceffc6735d461e99bebd4c6c7fa3b2fbae2c0a6f'
+MAINNET = 'bc1pg6luxm9s4qq65lge4l6ual7xwdw5v85eh675cmrl5we0ht3vpfhswxu0cx'
+SCRIPT = '5120' + PROGRAM
 FUND_SATS = 50_000_000
-DEFAULT_FEE_SATS = 1_000
+DEFAULT_FEE_SATS = 3000
+MAX_FEE_SATS = 10000
+MIN_RATE = Decimal('1')
+MAX_RATE = Decimal('10')
 
 
-def btc_to_sats(v):
-    d = Decimal(str(v)) * SAT
-    if d != d.to_integral_value():
-        raise ValueError("sub-satoshi amount: %r" % v)
-    return int(d)
+def btc_to_sats(value):
+    n = Decimal(str(value)) * 100000000
+    if n != n.to_integral_value():
+        raise ValueError('sub-satoshi amount')
+    return int(n)
 
 
-def sats_to_btc(s):
-    return format(Decimal(s) / SAT, ".8f")
+def sats_to_btc(n):
+    return format(Decimal(n) / 100000000, '.8f')
+
+
+def encode_destination(hrp):
+    """BIP350 witness-v1 bech32m encoding for the fixed 32-byte program."""
+    chars = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l'
+    acc = bits = 0
+    data = [1]
+    for b in bytes.fromhex(PROGRAM):
+        acc = (acc << 8) | b
+        bits += 8
+        while bits >= 5:
+            bits -= 5
+            data.append((acc >> bits) & 31)
+    if bits:
+        data.append((acc << (5 - bits)) & 31)
+    values = [ord(c) >> 5 for c in hrp] + [0] + [ord(c) & 31 for c in hrp] + data + [0] * 6
+    chk = 1
+    gen = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3]
+    for v in values:
+        top = chk >> 25
+        chk = ((chk & 0x1ffffff) << 5) ^ v
+        for i, g in enumerate(gen):
+            if (top >> i) & 1:
+                chk ^= g
+    chk ^= 0x2bc830a3
+    return hrp + '1' + ''.join(chars[x] for x in data + [(chk >> (5 * (5-i))) & 31 for i in range(6)])
+
+
+DESTINATION = encode_destination('bcrt')
 
 
 def assert_regtest_chain(info):
-    """Raise unless getblockchaininfo reports chain == regtest."""
-    if not isinstance(info, dict) or info.get("chain") != "regtest":
-        raise RuntimeError("REFUSING: node is not regtest (chain=%r)" %
-                           (info.get("chain") if isinstance(info, dict) else info))
+    if info.get('chain') != 'regtest':
+        raise RuntimeError('REFUSING: node is not regtest')
 
 
-def check_spend(tx, prevout_txid, prevout_vout, prevout_spk_type, dest_spk_hex,
-                in_sats, out_sats):
-    """Verify decoded tx: one exact input, one P2TR output paying dest."""
-    errs = []
-    if len(tx["vin"]) != 1:
-        errs.append("expected 1 input")
-    else:
-        vi = tx["vin"][0]
-        if vi.get("txid") != prevout_txid or vi.get("vout") != prevout_vout:
-            errs.append("input is not the funded prevout")
-    if prevout_spk_type != "pubkeyhash":
-        errs.append("prevout is not P2PKH: %s" % prevout_spk_type)
-    if len(tx["vout"]) != 1:
-        errs.append("expected exactly 1 output")
-    else:
-        spk = tx["vout"][0]["scriptPubKey"]
-        if spk.get("type") != "witness_v1_taproot":
-            errs.append("output is not taproot")
-        if spk.get("hex") != dest_spk_hex:
-            errs.append("output script mismatch")
-        if btc_to_sats(tx["vout"][0]["value"]) != out_sats:
-            errs.append("paid sats mismatch")
-    if in_sats - out_sats <= 0:
-        errs.append("non-positive fee")
-    return errs
+def fee_policy(fee, vsize=None):
+    if type(fee) is not int or not 0 < fee <= MAX_FEE_SATS:
+        raise ValueError('fee outside absolute bounds')
+    if vsize is not None and not MIN_RATE <= Decimal(fee) / vsize <= MAX_RATE:
+        raise ValueError('fee outside sat/vB bounds')
 
 
-def validate_receipt(r):
-    req = {"synthetic", "network", "txid", "blockhash", "height", "depth",
-           "input_sats", "paid_sats", "fee_sats"}
-    missing = req - set(r)
-    if missing:
-        return ["missing: %s" % sorted(missing)]
-    errs = []
-    if r["network"] != "regtest": errs.append("network not regtest")
-    if r["synthetic"] is not True: errs.append("not labelled synthetic")
-    if r["input_sats"] - r["paid_sats"] != r["fee_sats"]: errs.append("amounts inconsistent")
-    if r["depth"] < 1: errs.append("unconfirmed")
-    blob = json.dumps(r).lower()
-    for bad in ("privkey", "wif", "xprv", "tprv", "seed", "wallet.dat"):
-        if bad in blob: errs.append("private marker in receipt: " + bad)
-    return errs
+def verify_spend(tx, prevouts, fee):
+    expected = {(p['txid'], p['vout']) for p in prevouts}
+    actual = [(v['txid'], v['vout']) for v in tx['vin']]
+    if len(expected) != 7 or len(actual) != 7 or set(actual) != expected:
+        raise ValueError('expected seven distinct exact inputs')
+    if any(p['script_type'] != 'pubkeyhash' for p in prevouts):
+        raise ValueError('prevout is not P2PKH')
+    if len(tx['vout']) != 1:
+        raise ValueError('expected one output, no change')
+    output = tx['vout'][0]
+    if output['scriptPubKey']['hex'] != SCRIPT or output['scriptPubKey']['type'] != 'witness_v1_taproot':
+        raise ValueError('destination mismatch')
+    total = sum(p['sats'] for p in prevouts)
+    if total - btc_to_sats(output['value']) != fee:
+        raise ValueError('fee mismatch')
+    fee_policy(fee, tx['vsize'])
+    return total
 
 
-def free_port():
-    s = socket.socket(); s.bind(("127.0.0.1", 0)); p = s.getsockname()[1]; s.close(); return p
+def sha256(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+@contextlib.contextmanager
+def runtime(bindir=None):
+    manifest = json.loads((ROOT / 'runtime/manifest.json').read_text())
+    with tempfile.TemporaryDirectory(prefix='core-runtime-') as tmp:
+        target = Path(bindir) if bindir else Path(tmp)
+        for name, entry in manifest['components'].items():
+            if not bindir:
+                src = ROOT / 'runtime' / (name + '.xz')
+                if sha256(src) != entry['compressed_sha256']:
+                    raise RuntimeError('compressed runtime hash mismatch: ' + name)
+                (target / name).write_bytes(lzma.decompress(src.read_bytes()))
+                (target / name).chmod(0o700)
+            if sha256(target / name) != entry['sha256']:
+                raise RuntimeError('runtime hash mismatch: ' + name)
+        yield target
 
 
 class Node:
-    def __init__(self, bindir, datadir, port):
-        self.bindir, self.datadir, self.port = bindir, datadir, port
-        self.base = [os.path.join(bindir, "bitcoin-cli"), "-regtest",
-                     "-datadir=" + datadir, "-rpcport=%d" % port]
+    def __init__(self, bindir, datadir):
+        self.datadir = Path(datadir)
+        with socket.socket() as sock:
+            sock.bind(('127.0.0.1', 0))
+            port = sock.getsockname()[1]
+        # Explicit empty fixture-owned config; default machine config is never read.
+        conf = self.datadir / 'bitcoin.conf'
+        conf.write_text('')
+        self.env = {'HOME': str(self.datadir), 'PATH': '/usr/bin:/bin', 'LC_ALL': 'C'}
+        common = ['-regtest', '-datadir=' + str(self.datadir), '-conf=' + str(conf),
+                  '-rpcport=' + str(port), '-rpccookiefile=' + str(self.datadir / 'fixture.cookie')]
+        self.base = [str(bindir / 'bitcoin-cli')] + common
+        self.proc = subprocess.Popen([str(bindir / 'bitcoind')] + common + [
+            '-listen=0', '-connect=0', '-dnsseed=0', '-fixedseeds=0', '-networkactive=0',
+            '-upnp=0', '-natpmp=0', '-rpcbind=127.0.0.1', '-rpcallowip=127.0.0.1',
+            '-fallbackfee=0.0001', '-txindex=1', '-daemon=0', '-printtoconsole=0',
+            '-debuglogfile=0'], env=self.env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    def cli(self, *args, wallet=None, check_chain=True):
-        if check_chain and args[0] != "getblockchaininfo":
-            assert_regtest_chain(self.cli("getblockchaininfo"))
-        cmd = list(self.base) + (["-rpcwallet=" + wallet] if wallet else []) + list(args)
-        out = subprocess.run(cmd, capture_output=True, text=True)
-        if out.returncode:
-            raise RuntimeError("bitcoin-cli %s failed: %s" % (args[0], out.stderr.strip()))
-        t = out.stdout.strip()
+    def cli(self, *args, wallet=None, guard=True):
+        if guard and args[0] != 'getblockchaininfo':
+            assert_regtest_chain(self.cli('getblockchaininfo'))
+        cmd = self.base + (['-rpcwallet=' + wallet] if wallet else []) + list(args)
+        result = subprocess.run(cmd, env=self.env, capture_output=True, text=True, timeout=30)
+        if result.returncode:
+            # Do not echo RPC arguments, wallet responses, or secrets on errors.
+            raise RuntimeError('RPC failed: ' + args[0])
         try:
-            return json.loads(t, parse_float=Decimal)
+            return json.loads(result.stdout, parse_float=Decimal)
         except ValueError:
-            return t
+            return result.stdout.strip()
 
-
-def run(bindir, receipt_path, fee_sats):
-    datadir = tempfile.mkdtemp(prefix="regtest-payment-")
-    port = free_port()
-    d = [os.path.join(bindir, "bitcoind"), "-regtest", "-datadir=" + datadir,
-         "-listen=0", "-connect=0", "-dnsseed=0", "-fixedseeds=0", "-networkactive=0",
-         "-upnp=0", "-natpmp=0", "-rpcbind=127.0.0.1", "-rpcallowip=127.0.0.1",
-         "-rpcport=%d" % port, "-fallbackfee=0.0001", "-txindex=1", "-daemon=0",
-         "-printtoconsole=0"]
-    proc = subprocess.Popen(d, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
-    n = Node(bindir, datadir, port)
-    try:
-        for _ in range(120):
+    def start(self):
+        deadline = time.monotonic() + 30
+        while time.monotonic() < deadline:
+            if self.proc.poll() is not None:
+                raise RuntimeError('Core exited during startup')
             try:
-                info = n.cli("getblockchaininfo"); break
+                info = self.cli('getblockchaininfo')
+                assert_regtest_chain(info)
+                if info['blocks'] != 0:
+                    raise RuntimeError('fixture is not fresh')
+                return
             except RuntimeError:
-                if proc.poll() is not None:
-                    raise RuntimeError("bitcoind exited: " + proc.stderr.read().decode())
-                time.sleep(0.5)
-        else:
-            raise RuntimeError("bitcoind RPC never came up")
-        assert_regtest_chain(info)
-        if info["blocks"] != 0:
-            raise RuntimeError("datadir not fresh")
-        ni = n.cli("getnetworkinfo")
-        if ni.get("networkactive") or ni.get("connections"):
-            raise RuntimeError("peer networking not disabled")
-        for w in ("miner", "src", "dest"):
-            n.cli("createwallet", w)
-        mine_addr = n.cli("getnewaddress", "", "bech32", wallet="miner")
-        n.cli("generatetoaddress", "101", mine_addr)
-        p2pkh = n.cli("getnewaddress", "", "legacy", wallet="src")
-        fund_txid = n.cli("sendtoaddress", p2pkh, sats_to_btc(FUND_SATS), wallet="miner")
-        n.cli("generatetoaddress", "1", mine_addr)
-        fund_tx = n.cli("getrawtransaction", fund_txid, "true")
-        vout = next(o["n"] for o in fund_tx["vout"]
-                    if o["scriptPubKey"].get("address") == p2pkh)
-        prev = fund_tx["vout"][vout]
-        in_sats = btc_to_sats(prev["value"])
-        taproot = n.cli("getnewaddress", "", "bech32m", wallet="dest")
-        dest_spk = n.cli("getaddressinfo", taproot, wallet="dest")["scriptPubKey"]
-        out_sats = in_sats - fee_sats
-        raw = n.cli("createrawtransaction",
-                    json.dumps([{"txid": fund_txid, "vout": vout}]),
-                    json.dumps([{taproot: sats_to_btc(out_sats)}]))
-        signed = n.cli("signrawtransactionwithwallet", raw, wallet="src")
-        if not signed.get("complete"):
-            raise RuntimeError("signing incomplete")
-        accept = n.cli("testmempoolaccept", json.dumps([signed["hex"]]))[0]
-        if not accept.get("allowed"):
-            raise RuntimeError("mempool reject: %s" % accept.get("reject-reason"))
-        txid = n.cli("sendrawtransaction", signed["hex"])
-        bh = n.cli("generatetoaddress", "1", mine_addr)[0]
-        tx = n.cli("getrawtransaction", txid, "true", bh)
-        errs = check_spend(tx, fund_txid, vout, prev["scriptPubKey"]["type"],
-                           dest_spk, in_sats, out_sats)
-        fee_core = btc_to_sats(n.cli("getrawtransaction", txid, "2", bh)["fee"])
-        if fee_core != fee_sats: errs.append("core fee %d != %d" % (fee_core, fee_sats))
-        if errs: raise RuntimeError("verification failed: %s" % errs)
-        blk = n.cli("getblockheader", bh)
-        receipt = {
-            "synthetic": True,
-            "note": "SYNTHETIC regtest fixture; disposable wallets; not mainnet",
-            "network": n.cli("getblockchaininfo")["chain"],
-            "core_version": ni.get("subversion"),
-            "funding_txid": fund_txid, "funding_vout": vout,
-            "funding_script_type": prev["scriptPubKey"]["type"],
-            "txid": txid, "blockhash": bh, "height": blk["height"],
-            "depth": blk["confirmations"],
-            "destination_script_type": "witness_v1_taproot",
-            "destination_script_hex": dest_spk,
-            "input_sats": in_sats, "paid_sats": out_sats, "fee_sats": fee_sats,
-            "vsize": tx["vsize"],
-        }
-        bad = validate_receipt(receipt)
-        if bad: raise RuntimeError("receipt invalid: %s" % bad)
-        with open(receipt_path, "w") as f:
-            json.dump(receipt, f, indent=2); f.write("\n")
-        print(json.dumps(receipt, indent=2))
-        return 0
+                time.sleep(.05)
+        raise RuntimeError('Core startup timeout')
+
+    def close(self):
+        if self.proc.poll() is None:
+            try:
+                self.cli('stop', guard=False)
+            except Exception:
+                self.proc.terminate()
+            try:
+                self.proc.wait(timeout=15)
+            except subprocess.TimeoutExpired:
+                self.proc.kill()
+                self.proc.wait()
+
+
+def run(receipt_path, fee_sats=DEFAULT_FEE_SATS, bindir=None, signer=None, hold_at=None, ready=None, work_root=None):
+    """Integration seam: signer(node, unsigned_hex, public_prevouts) -> signed hex.
+
+    Only generated regtest sources are passed. No external signer ships here; callers
+    must independently test their adapter. Receipt is written only after verification.
+    """
+    fee_policy(fee_sats)
+    if encode_destination('bc') != MAINNET:
+        raise RuntimeError('mainnet recipient/program checksum mismatch')
+    started = time.monotonic()
+    with runtime(bindir) as binaries, tempfile.TemporaryDirectory(prefix='synthetic-regtest-', dir=work_root) as datadir:
+        node = Node(binaries, datadir)
+        try:
+            node.start()
+            network = node.cli('getnetworkinfo')
+            if network['networkactive'] or network['connections']:
+                raise RuntimeError('networking enabled')
+            for w in ('miner', 'src'):
+                node.cli('createwallet', w)
+            mine = node.cli('getnewaddress', '', 'bech32', wallet='miner')
+            node.cli('generatetoaddress', '101', mine)
+            addresses = [node.cli('getnewaddress', '', 'legacy', wallet='src') for _ in range(7)]
+            funding_id = node.cli('sendmany', '', json.dumps({a: sats_to_btc(FUND_SATS) for a in addresses}), wallet='miner')
+            funding_block = node.cli('generatetoaddress', '1', mine)[0]
+            funding_raw = node.cli('getrawtransaction', funding_id, 'false', funding_block)
+            funding = node.cli('decoderawtransaction', funding_raw)
+            prevouts = []
+            for v in funding['vout']:
+                if v['scriptPubKey'].get('address') in addresses:
+                    if node.cli('gettxout', funding_id, str(v['n'])) is None:
+                        raise RuntimeError('funding output unavailable')
+                    prevouts.append({'txid': funding_id, 'vout': v['n'], 'sats': btc_to_sats(v['value']),
+                                     'script_hex': v['scriptPubKey']['hex'], 'script_type': v['scriptPubKey']['type']})
+            if len(prevouts) != 7:
+                raise RuntimeError('expected seven funded sources')
+            total = sum(p['sats'] for p in prevouts)
+            validation = node.cli('validateaddress', DESTINATION)
+            if not validation['isvalid'] or validation['scriptPubKey'] != SCRIPT:
+                raise RuntimeError('Core destination validation mismatch')
+            unsigned = node.cli('createrawtransaction', json.dumps([{'txid': p['txid'], 'vout': p['vout']} for p in prevouts]),
+                                json.dumps([{DESTINATION: sats_to_btc(total-fee_sats)}]))
+            if signer:
+                signed_hex = signer(node, unsigned, prevouts)
+            else:
+                signed = node.cli('signrawtransactionwithwallet', unsigned, wallet='src')
+                if not signed['complete']:
+                    raise RuntimeError('incomplete signature')
+                signed_hex = signed['hex']
+            tx = node.cli('decoderawtransaction', signed_hex)
+            verify_spend(tx, prevouts, fee_sats)
+            if hold_at == 'signed':
+                if ready is None:
+                    raise ValueError('hold requires ready path')
+                Path(ready).write_text(json.dumps({'phase': 'signed', 'node_pid': node.proc.pid, 'datadir': datadir}))
+                while True:
+                    signal.pause()
+            accept = node.cli('testmempoolaccept', json.dumps([signed_hex]))[0]
+            if not accept.get('allowed') or btc_to_sats(accept['fees']['base']) != fee_sats or accept['vsize'] != tx['vsize']:
+                raise RuntimeError('mempool admission/fee/vsize mismatch')
+            txid = node.cli('sendrawtransaction', signed_hex)
+            blockhash = node.cli('generatetoaddress', '1', mine)[0]
+            node.cli('generatetoaddress', '1', mine)
+            verbose = node.cli('getrawtransaction', txid, '2', blockhash)
+            if btc_to_sats(verbose['fee']) != fee_sats or not verbose['in_active_chain']:
+                raise RuntimeError('confirmed fee/chain mismatch')
+            header = node.cli('getblockheader', blockhash)
+            tip = node.cli('getblockchaininfo')
+            if header['confirmations'] != 2 or node.cli('getblockhash', str(header['height'])) != blockhash:
+                raise RuntimeError('active-chain depth mismatch')
+            for vin, prev in zip(verbose['vin'], prevouts):
+                rawprev = vin['prevout']
+                if btc_to_sats(rawprev['value']) != prev['sats'] or rawprev['scriptPubKey']['hex'] != prev['script_hex']:
+                    raise RuntimeError('Core raw prevout mismatch')
+            receipt = {
+                'synthetic': True, 'label': 'SYNTHETIC', 'network': 'regtest', 'objectiveStatus': 'INCOMPLETE',
+                'core_version': network['subversion'], 'networkactive': False, 'connections': 0,
+                'source_count': 7, 'destination': DESTINATION, 'destination_script_hex': SCRIPT,
+                'input_sats': total, 'paid_sats': total-fee_sats, 'fee_sats': fee_sats,
+                'vsize': tx['vsize'], 'fee_rate_sat_vB': str(Decimal(fee_sats)/tx['vsize']),
+                'fee_policy': {'max_sats': MAX_FEE_SATS, 'min_sat_vB': str(MIN_RATE), 'max_sat_vB': str(MAX_RATE)},
+                'prevouts': prevouts, 'funding_raw': funding_raw, 'funding_txid': funding_id,
+                'funding_blockhash': funding_block, 'funding_block_raw': node.cli('getblock', funding_block, '0'),
+                'sweep_raw': signed_hex, 'txid': txid, 'output_count': 1,
+                'mempool': accept, 'blockhash': blockhash, 'block_header_raw': node.cli('getblockheader', blockhash, 'false'),
+                'block_raw': node.cli('getblock', blockhash, '0'), 'height': header['height'], 'depth': header['confirmations'],
+                'active_tip': tip['bestblockhash'], 'active_height': tip['blocks'],
+                'active_tip_header_raw': node.cli('getblockheader', tip['bestblockhash'], 'false'),
+                'elapsed_seconds': round(time.monotonic()-started, 6),
+                'signer': 'external adapter' if signer else 'Core generated regtest wallet',
+            }
+        finally:
+            node.close()
+    # Datadir and runtime removed before publishing public allowlisted fields.
+    receipt['disposable_secrets_removed'] = True
+    path = Path(receipt_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(mode='w', dir=path.parent, delete=False) as out:
+        tmp = Path(out.name)
+        json.dump(receipt, out, indent=2, default=str)
+        out.write('\n')
+    try:
+        os.replace(tmp, path)
     finally:
-        try: n.cli("stop", check_chain=False)
-        except Exception: pass
-        try: proc.wait(30)
-        except Exception: proc.kill()
-        shutil.rmtree(datadir, ignore_errors=True)  # wallets never leave tmp
+        tmp.unlink(missing_ok=True)
+    return receipt
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--bindir", required=True)
-    ap.add_argument("--receipt", default="regtest-receipt.json")
-    ap.add_argument("--fee-sats", type=int, default=DEFAULT_FEE_SATS)
-    a = ap.parse_args()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--bindir', type=Path, help='optional exact hash-verified Core 28.1 binaries')
+    parser.add_argument('--receipt', type=Path, default=ROOT / 'receipt.json')
+    parser.add_argument('--fee-sats', type=int, default=DEFAULT_FEE_SATS)
+    parser.add_argument('--hold-at', choices=['signed'], help=argparse.SUPPRESS)
+    parser.add_argument('--ready', type=Path, help=argparse.SUPPRESS)
+    parser.add_argument('--work-root', type=Path, help=argparse.SUPPRESS)
+    args = parser.parse_args()
+    def interrupted(signum, frame):
+        raise KeyboardInterrupt
+    signal.signal(signal.SIGTERM, interrupted)
     try:
-        return run(a.bindir, a.receipt, a.fee_sats)
-    except Exception as e:
-        print("ERROR: %s" % e, file=sys.stderr); return 1
+        result = run(args.receipt, args.fee_sats, args.bindir, hold_at=args.hold_at, ready=args.ready, work_root=args.work_root)
+        print(json.dumps({k: result[k] for k in ('label', 'txid', 'fee_sats', 'vsize', 'depth', 'elapsed_seconds')}))
+        return 0
+    except KeyboardInterrupt:
+        print('SYNTHETIC fixture interrupted; disposable node cleaned', file=sys.stderr)
+        return 130
+    except Exception as exc:
+        print('SYNTHETIC fixture failed: ' + str(exc), file=sys.stderr)
+        return 1
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     sys.exit(main())

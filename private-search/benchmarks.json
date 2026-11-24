@@ -1,0 +1,379 @@
+{
+  "deviceLabel": "unknown",
+  "measurementNotes": {
+    "delivery": "Final independent verification is measured even with no external candidate sink in this synthetic benchmark.",
+    "memory": "Bytes, peak RSS of each fresh task process only; process lifetime high-water mark, not a solve-only allocation count.",
+    "operations": "Integer counts: scalar multiplications, point addition calls, doublings, modular inversions; doubling can also be an addition call.",
+    "solve": "Loop wall time includes collision verification and periodic checkpoints; excludes final save/delivery.",
+    "throughput": "Actual walk steps divided by solve wall seconds, not keys tested or a GPU estimate.",
+    "wall": "Seconds from monotonic clock. Setup includes synthetic generation, initialization and initial checkpoint."
+  },
+  "measurements": [
+    {
+      "deliveryVerificationOperations": {
+        "additions": 146,
+        "doublings": 284,
+        "inversions": 142,
+        "scalar_multiplications": 3
+      },
+      "deliveryWallSeconds": 0.004502598196268082,
+      "deviceLabel": "unknown",
+      "dpBits": 0,
+      "label": "synthetic-generated",
+      "lowerBound": "2^139",
+      "lowerBoundBits": 140,
+      "mode": "synthetic",
+      "position": "lower",
+      "processPeakRssBytes": 19963904,
+      "retainedDpRecords": 17,
+      "seed": "bench-v1",
+      "setupOperations": {
+        "additions": 40,
+        "doublings": 343,
+        "inversions": 34,
+        "scalar_multiplications": 35
+      },
+      "setupProcessPeakRssBytes": 19963904,
+      "setupWallSeconds": 0.008448082953691483,
+      "solveCpuSeconds": 0.005877999999999998,
+      "solveOperations": {
+        "additions": 162,
+        "doublings": 284,
+        "inversions": 158,
+        "scalar_multiplications": 3
+      },
+      "solveWallSeconds": 0.005903199315071106,
+      "status": "solved",
+      "steps": 16,
+      "totalWallSeconds": 0.021853811107575893,
+      "walkStepsPerSecond": 2710.3946768579126,
+      "width": 17
+    },
+    {
+      "deliveryVerificationOperations": {
+        "additions": 144,
+        "doublings": 279,
+        "inversions": 141,
+        "scalar_multiplications": 3
+      },
+      "deliveryWallSeconds": 0.004536401014775038,
+      "deviceLabel": "unknown",
+      "dpBits": 0,
+      "label": "synthetic-generated",
+      "lowerBound": "2^139",
+      "lowerBoundBits": 140,
+      "mode": "synthetic",
+      "position": "upper",
+      "processPeakRssBytes": 19955712,
+      "retainedDpRecords": 1,
+      "seed": "bench-v1",
+      "setupOperations": {
+        "additions": 185,
+        "doublings": 622,
+        "inversions": 175,
+        "scalar_multiplications": 38
+      },
+      "setupProcessPeakRssBytes": 19955712,
+      "setupWallSeconds": 0.01173687493428588,
+      "solveCpuSeconds": 1.0999999999995388e-05,
+      "solveOperations": {
+        "additions": 0,
+        "doublings": 0,
+        "inversions": 0,
+        "scalar_multiplications": 0
+      },
+      "solveWallSeconds": 6.812624633312225e-07,
+      "status": "solved",
+      "steps": 0,
+      "totalWallSeconds": 0.018421584740281105,
+      "walkStepsPerSecond": 0.0,
+      "width": 17
+    },
+    {
+      "deliveryVerificationOperations": {
+        "additions": 153,
+        "doublings": 287,
+        "inversions": 143,
+        "scalar_multiplications": 3
+      },
+      "deliveryWallSeconds": 0.004259482957422733,
+      "deviceLabel": "unknown",
+      "dpBits": 0,
+      "label": "synthetic-generated",
+      "lowerBound": "2^139",
+      "lowerBoundBits": 140,
+      "mode": "synthetic",
+      "position": "middle",
+      "processPeakRssBytes": 19886080,
+      "retainedDpRecords": 39,
+      "seed": "bench-v1",
+      "setupOperations": {
+        "additions": 75,
+        "doublings": 388,
+        "inversions": 34,
+        "scalar_multiplications": 35
+      },
+      "setupProcessPeakRssBytes": 19886080,
+      "setupWallSeconds": 0.006937141064554453,
+      "solveCpuSeconds": 0.006098000000000003,
+      "solveOperations": {
+        "additions": 191,
+        "doublings": 287,
+        "inversions": 181,
+        "scalar_multiplications": 3
+      },
+      "solveWallSeconds": 0.006084633991122246,
+      "status": "solved",
+      "steps": 38,
+      "totalWallSeconds": 0.019378949888050556,
+      "walkStepsPerSecond": 6245.240067922526,
+      "width": 257
+    },
+    {
+      "deliveryVerificationOperations": {
+        "additions": 163,
+        "doublings": 291,
+        "inversions": 148,
+        "scalar_multiplications": 3
+      },
+      "deliveryWallSeconds": 0.004605063237249851,
+      "deviceLabel": "unknown",
+      "dpBits": 0,
+      "label": "synthetic-generated",
+      "lowerBound": "2^139",
+      "lowerBoundBits": 140,
+      "mode": "synthetic",
+      "position": "seeded",
+      "processPeakRssBytes": 19914752,
+      "retainedDpRecords": 263,
+      "seed": "bench-v1",
+      "setupOperations": {
+        "additions": 116,
+        "doublings": 434,
+        "inversions": 34,
+        "scalar_multiplications": 35
+      },
+      "setupProcessPeakRssBytes": 19783680,
+      "setupWallSeconds": 0.00750967301428318,
+      "solveCpuSeconds": 0.013380000000000003,
+      "solveOperations": {
+        "additions": 425,
+        "doublings": 291,
+        "inversions": 410,
+        "scalar_multiplications": 3
+      },
+      "solveWallSeconds": 0.013396379072219133,
+      "status": "solved",
+      "steps": 262,
+      "totalWallSeconds": 0.029844249598681927,
+      "walkStepsPerSecond": 19557.523610490014,
+      "width": 4096
+    },
+    {
+      "deliveryVerificationOperations": {
+        "additions": 164,
+        "doublings": 296,
+        "inversions": 142,
+        "scalar_multiplications": 3
+      },
+      "deliveryWallSeconds": 0.004590054042637348,
+      "deviceLabel": "unknown",
+      "dpBits": 0,
+      "label": "synthetic-generated",
+      "lowerBound": "2^139",
+      "lowerBoundBits": 140,
+      "mode": "synthetic",
+      "position": "lower",
+      "processPeakRssBytes": 21495808,
+      "retainedDpRecords": 1241,
+      "seed": "bench-v1",
+      "setupOperations": {
+        "additions": 140,
+        "doublings": 500,
+        "inversions": 34,
+        "scalar_multiplications": 35
+      },
+      "setupProcessPeakRssBytes": 20054016,
+      "setupWallSeconds": 0.008223854936659336,
+      "solveCpuSeconds": 0.044697,
+      "solveOperations": {
+        "additions": 1404,
+        "doublings": 296,
+        "inversions": 1382,
+        "scalar_multiplications": 3
+      },
+      "solveWallSeconds": 0.044768123887479305,
+      "status": "solved",
+      "steps": 1240,
+      "totalWallSeconds": 0.06863837037235498,
+      "walkStepsPerSecond": 27698.27931848629,
+      "width": 65536
+    },
+    {
+      "deliveryVerificationOperations": {
+        "additions": 170,
+        "doublings": 290,
+        "inversions": 158,
+        "scalar_multiplications": 3
+      },
+      "deliveryWallSeconds": 0.0050015803426504135,
+      "deviceLabel": "unknown",
+      "dpBits": 4,
+      "label": "synthetic-generated",
+      "lowerBound": "2^139",
+      "lowerBoundBits": 140,
+      "mode": "synthetic",
+      "position": "upper",
+      "processPeakRssBytes": 19972096,
+      "retainedDpRecords": 1,
+      "seed": "bench-v1",
+      "setupOperations": {
+        "additions": 156,
+        "doublings": 500,
+        "inversions": 34,
+        "scalar_multiplications": 35
+      },
+      "setupProcessPeakRssBytes": 19972096,
+      "setupWallSeconds": 0.00829903781414032,
+      "solveCpuSeconds": 0.005344,
+      "solveOperations": {
+        "additions": 186,
+        "doublings": 290,
+        "inversions": 174,
+        "scalar_multiplications": 3
+      },
+      "solveWallSeconds": 0.005355845671147108,
+      "status": "solved",
+      "steps": 16,
+      "totalWallSeconds": 0.020976646803319454,
+      "walkStepsPerSecond": 2987.390037430474,
+      "width": 65536
+    },
+    {
+      "deliveryVerificationOperations": {
+        "additions": 176,
+        "doublings": 300,
+        "inversions": 151,
+        "scalar_multiplications": 3
+      },
+      "deliveryWallSeconds": 0.005051685031503439,
+      "deviceLabel": "unknown",
+      "dpBits": 0,
+      "label": "synthetic-generated",
+      "lowerBound": "2^139",
+      "lowerBoundBits": 140,
+      "mode": "synthetic",
+      "position": "seeded",
+      "processPeakRssBytes": 29954048,
+      "retainedDpRecords": 8279,
+      "seed": "compare-v1",
+      "setupOperations": {
+        "additions": 190,
+        "doublings": 553,
+        "inversions": 34,
+        "scalar_multiplications": 35
+      },
+      "setupProcessPeakRssBytes": 19992576,
+      "setupWallSeconds": 0.011107595171779394,
+      "solveCpuSeconds": 0.317163,
+      "solveOperations": {
+        "additions": 8454,
+        "doublings": 300,
+        "inversions": 8429,
+        "scalar_multiplications": 3
+      },
+      "solveWallSeconds": 0.3175698919221759,
+      "status": "solved",
+      "steps": 8278,
+      "totalWallSeconds": 0.41579184494912624,
+      "walkStepsPerSecond": 26066.702828455218,
+      "width": 1048576
+    },
+    {
+      "deliveryVerificationOperations": {
+        "additions": 169,
+        "doublings": 300,
+        "inversions": 151,
+        "scalar_multiplications": 3
+      },
+      "deliveryWallSeconds": 0.004838186781853437,
+      "deviceLabel": "unknown",
+      "dpBits": 4,
+      "label": "synthetic-generated",
+      "lowerBound": "2^139",
+      "lowerBoundBits": 140,
+      "mode": "synthetic",
+      "position": "seeded",
+      "processPeakRssBytes": 20615168,
+      "retainedDpRecords": 534,
+      "seed": "compare-v1",
+      "setupOperations": {
+        "additions": 190,
+        "doublings": 553,
+        "inversions": 34,
+        "scalar_multiplications": 35
+      },
+      "setupProcessPeakRssBytes": 19959808,
+      "setupWallSeconds": 0.009098612703382969,
+      "solveCpuSeconds": 0.290611,
+      "solveOperations": {
+        "additions": 8479,
+        "doublings": 300,
+        "inversions": 8461,
+        "scalar_multiplications": 3
+      },
+      "solveWallSeconds": 0.2911846889182925,
+      "status": "solved",
+      "steps": 8310,
+      "totalWallSeconds": 0.3114354107528925,
+      "walkStepsPerSecond": 28538.588450067222,
+      "width": 1048576
+    },
+    {
+      "deliveryVerificationOperations": {
+        "additions": 181,
+        "doublings": 303,
+        "inversions": 153,
+        "scalar_multiplications": 3
+      },
+      "deliveryWallSeconds": 0.005200278013944626,
+      "deviceLabel": "unknown",
+      "dpBits": 8,
+      "label": "synthetic-generated",
+      "lowerBound": "2^139",
+      "lowerBoundBits": 140,
+      "mode": "synthetic",
+      "position": "seeded",
+      "processPeakRssBytes": 19832832,
+      "retainedDpRecords": 63,
+      "seed": "large-synthetic-v1",
+      "setupOperations": {
+        "additions": 229,
+        "doublings": 631,
+        "inversions": 34,
+        "scalar_multiplications": 35
+      },
+      "setupProcessPeakRssBytes": 19832832,
+      "setupWallSeconds": 0.009719817899167538,
+      "solveCpuSeconds": 0.487121,
+      "solveOperations": {
+        "additions": 14137,
+        "doublings": 303,
+        "inversions": 14109,
+        "scalar_multiplications": 3
+      },
+      "solveWallSeconds": 0.49017239455133677,
+      "status": "solved",
+      "steps": 13956,
+      "totalWallSeconds": 0.5085245068185031,
+      "walkStepsPerSecond": 28471.615609390177,
+      "width": 16777216
+    }
+  ],
+  "networkUsed": false,
+  "objectiveStatus": "INCOMPLETE",
+  "productionExecuted": false,
+  "pythonVersion": "3.13.5",
+  "schema": "private-search-benchmark@1",
+  "workers": 1
+}

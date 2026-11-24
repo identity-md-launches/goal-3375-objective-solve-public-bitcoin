@@ -1,0 +1,11 @@
+{
+  "address": "1QKBaU6WAeycb3DbKbLBkX7vJiaS8r42Xo",
+  "label": "bitcoin-puzzle-140",
+  "lower": "696898287454081973172991196020261297061888",
+  "mode": "real",
+  "network": "bitcoin-mainnet",
+  "publicKey": "031f6a332d3c5c4f2de2378c012f429cd109ba07d69690c6c701b6bb87860d6640",
+  "recipient": "bc1pg6luxm9s4qq65lge4l6ual7xwdw5v85eh675cmrl5we0ht3vpfhswxu0cx",
+  "schema": "kangaroo-manifest@1",
+  "upper": "1393796574908163946345982392040522594123775"
+}

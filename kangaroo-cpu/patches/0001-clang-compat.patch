@@ -1,0 +1,44 @@
+--- a/Network.cpp	2026-11-24 09:24:13.362620306 +0000
++++ b/Network.cpp	2026-11-24 09:24:13.373620264 +0000
+@@ -740,7 +740,7 @@
+   soc_addr.sin_port = htons(port);
+   soc_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+ 
+-  if(bind(serverSock,(struct sockaddr*)&soc_addr,sizeof(soc_addr))) {
++  if(::bind(serverSock,(struct sockaddr*)&soc_addr,sizeof(soc_addr))) {
+     ::printf("Error: Can not bind socket. Another server running?\n%s\n",GetNetworkError().c_str());
+     exit(-1);
+   }
+--- a/SECPK1/Int.h	2026-11-24 09:24:13.363620302 +0000
++++ b/SECPK1/Int.h	2026-11-24 09:25:04.545425691 +0000
+@@ -238,19 +238,30 @@
+   return q;  
+ }
+ 
++#if defined(__clang__)
++/* kangaroo-cpu clang patch: clang provides __rdtsc/_subborrow_u64/_addcarry_u64 natively */
++#include <x86intrin.h>
++#else
+ static uint64_t inline __rdtsc() {
+   uint32_t h;
+   uint32_t l;
+   __asm__( "rdtsc;" :"=d"(h),"=a"(l));
+   return (uint64_t)h << 32 | (uint64_t)l;
+ }
++#endif
+ 
+ #define __shiftright128(a,b,n) ((a)>>(n))|((b)<<(64-(n)))
+ #define __shiftleft128(a,b,n) ((b)<<(n))|((a)>>(64-(n)))
+ 
+ 
++#if defined(__clang__)
++/* clang's intrinsics take unsigned long long*; cast like the GCC branch does */
++#define _subborrow_u64(a,b,c,d) (_subborrow_u64)(a,b,c,(long long unsigned int*)(d));
++#define _addcarry_u64(a,b,c,d) (_addcarry_u64)(a,b,c,(long long unsigned int*)(d));
++#else
+ #define _subborrow_u64(a,b,c,d) __builtin_ia32_sbb_u64(a,b,c,(long long unsigned int*)d);
+ #define _addcarry_u64(a,b,c,d) __builtin_ia32_addcarryx_u64(a,b,c,(long long unsigned int*)d);
++#endif
+ #define _byteswap_uint64 __builtin_bswap64
+ #define LZC(x) __builtin_clzll(x)
+ #define TZC(x) __builtin_ctzll(x)

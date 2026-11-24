@@ -1,0 +1,25 @@
+{
+  "challenge": "bitcoin-puzzle-140",
+  "note": "Fixed public challenge identity. The adapter's real mode is locked to exactly these values and refuses any substitution. RCKangaroo solves the ECDLP only; it does not pay. The recipient is recorded here for the downstream (separate) secure-claim tool.",
+  "address": "1QKBaU6WAeycb3DbKbLBkX7vJiaS8r42Xo",
+  "address_type": "p2pkh-compressed",
+  "pubkey_compressed": "031f6a332d3c5c4f2de2378c012f429cd109ba07d69690c6c701b6bb87860d6640",
+  "interval": {
+    "inclusive_low": "2^139",
+    "inclusive_high": "2^140 - 1",
+    "rckangaroo_range_bits": 140,
+    "rckangaroo_start_hex": "80000000000000000000000000000000000"
+  },
+  "recipient": {
+    "address": "bc1pg6luxm9s4qq65lge4l6ual7xwdw5v85eh675cmrl5we0ht3vpfhswxu0cx",
+    "network": "mainnet",
+    "type": "p2tr-bech32m",
+    "rule": "pay this address exclusively, less network fees; no substitution, operator fee, donation, or reward-sharing"
+  },
+  "verification_required_before_execution": [
+    "recipient bech32m mainnet checksum",
+    "pubkey -> p2pkh address match",
+    "interval and current spendable prize/UTXO state",
+    "that execution targets only this public challenge"
+  ]
+}

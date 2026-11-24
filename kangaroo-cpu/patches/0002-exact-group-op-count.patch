@@ -1,0 +1,13 @@
+--- a/Kangaroo.cpp	2026-11-24 09:24:13.362620306 +0000
++++ b/Kangaroo.cpp	2026-11-24 09:25:30.863325596 +0000
+@@ -1053,6 +1053,10 @@
+       Process(params,"MK/s");
+       JoinThreads(thHandles,nbCPUThread + nbGPUThread);
+       FreeHandles(thHandles,nbCPUThread + nbGPUThread);
++      /* kangaroo-cpu patch: exact jump (group addition) counters, not the MK/s label */
++      ::printf("\n[KCPU-COUNT] key=%d session_group_ops=%llu cpu_group_ops=%llu offset_group_ops=%.0f\n",
++               keyIdx,(unsigned long long)(getCPUCount() + getGPUCount()),
++               (unsigned long long)getCPUCount(),(double)offsetCount);
+       hashTable.Reset();
+ 
+ #ifdef STATS
