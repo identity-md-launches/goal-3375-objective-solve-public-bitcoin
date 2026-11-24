@@ -20,7 +20,7 @@ Problem: given `H = G**x (mod P)` with the promise `x ∈ [a, b]`, recover `x`.
 | method | file symbol | idea | time | memory |
 |--------|-------------|------|------|--------|
 | Baby-step / Giant-step (interval) | `bsgs_interval` | build a table of `G**j`, stride by `G**(-m)` | `O(√W)` | `O(√W)` |
-| Pollard kangaroo / lambda (interval) | `kangaroo` | tame kangaroo lays footprints from the top of the interval; wild kangaroo seeks a collision | `O(√W)` expected | small (footprint table) |
+| Pollard kangaroo / lambda (interval) | `kangaroo` | tame kangaroo lays footprints from the top of the interval; wild kangaroo seeks a collision | `O(√W)` expected | `O(√W)` footprint entries (~3√W+17), not small |
 
 Both methods are run on the **same instances** (identical `H, a, b`). `W = b - a`.
 
@@ -39,7 +39,7 @@ jump depends only on the current point value.
 
 ## Fixtures (deterministic, known answers)
 
-One fixed interval `[1000, 5096]` (width `4096`) with 7 fixtures:
+One fixed interval `[1000, 5096]` (span `b-a` = `4096`, `4097` candidates) with 7 fixtures:
 
 - `endpoint-low`  — `x = a` (interval low endpoint)
 - `endpoint-high` — `x = b` (interval high endpoint)
@@ -116,10 +116,17 @@ operations** (tens) than the single-table **kangaroo** (hundreds), but BSGS hold
 a full `√W` baby-step table. This is the expected textbook trade-off *for this toy
 size*; it is **not** a claim about any real-size problem.
 
-`python3 -m unittest -v test_toy_dlog` ends with `OK` (18 tests).
+`python3 -m unittest -v test_toy_dlog` ends with `OK` (18 tests); full acceptance: `python3 -I -B toy-comparison/check.py`.
 
 ## Files
 
 - `toy_dlog.py` — group, both methods, fixtures, measurement harness, CLI.
 - `test_toy_dlog.py` — 18 deterministic unit tests (stdlib `unittest`).
 - `README.md` — this file.
+
+## Boundary rules and reporting (regression fixes)
+
+- Intervals must satisfy `a <= b` and span `< N`; targets must be subgroup members. Violations raise (never `assert`, so `python -O` keeps them).
+- Interior fixtures need span >= 2. Unknown fixture names exit 2 from the CLI.
+- Time comes from an untraced run; `tracemalloc` peak from a separate run. Ops split into `setup_ops` (bsgs transform / kangaroo tame footprints) and `search_ops` (wild work).
+- Toy results say nothing about secp256k1 or puzzle #140.

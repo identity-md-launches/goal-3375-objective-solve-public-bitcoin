@@ -5,6 +5,7 @@
 Run with either:
     python3 -m unittest -v test_toy_dlog
     python3 test_toy_dlog.py
+(the full acceptance check is: python3 -I -B toy-comparison/check.py)
 
 Standard library only (unittest). No network, no RNG, no wall-clock dependence.
 """
@@ -123,19 +124,16 @@ class TestMethods(unittest.TestCase):
                                      (m, f.name))
 
     def test_wrong_target_is_not_falsely_solved(self):
-        # Feed H for x outside the claimed interval -> methods must not claim x.
+        # H for x outside the claimed interval (but in the subgroup): methods
+        # must not return any candidate (it cannot be verified in range).
         f = td.get_fixture("interior-alpha")
         bogus_x = f.b + 500  # outside [a, b]
         bogus_h = pow(td.G, bogus_x, td.P)
-        bogus = td.Fixture(name="bogus", a=f.a, b=f.b, kind="interior",
-                           x=bogus_x, h=bogus_h)
-        for m in td.METHODS:
-            r = td.solve(m, bogus)
-            # recovered, if any, must satisfy the interval and the equation;
-            # it cannot equal the out-of-range bogus_x.
-            if r.recovered is not None:
-                self.assertTrue(f.a <= r.recovered <= f.b)
-                self.assertNotEqual(r.recovered, bogus_x)
+        self.assertIsNone(td.bsgs_interval(bogus_h, f.a, f.b)[0])
+        self.assertIsNone(td.kangaroo(bogus_h, f.a, f.b)[0])
+        with self.assertRaises(ValueError):  # Fixture refuses out-of-range x
+            td.Fixture(name="bogus", a=f.a, b=f.b, kind="interior",
+                       x=bogus_x, h=bogus_h)
 
 
 if __name__ == "__main__":

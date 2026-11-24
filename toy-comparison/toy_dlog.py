@@ -22,19 +22,31 @@ Given H = G**x (mod P) with the promise that x lies in a known interval [a, b],
 recover x. Two classic methods are compared on *identical* instances:
 
   * bsgs_interval  -- Baby-step/Giant-step restricted to the interval. O(sqrt(W))
-                      time and O(sqrt(W)) memory, deterministic, always succeeds.
+                      time and O(sqrt(W)) table entries, deterministic, always
+                      succeeds when the promise holds.
   * kangaroo       -- Pollard's lambda (kangaroo) method for an interval. A
                       didactic single-table variant: a tame kangaroo lays
                       footprints, a wild kangaroo seeks a collision. O(sqrt(W))
-                      expected time, small memory, bounded by a termination limit;
-                      may fail if the limit is hit (recorded honestly).
+                      expected time. Its footprint table is ALSO O(sqrt(W)) entries
+                      (about 3*sqrt(W)+17 here), i.e. not "small"; the classic
+                      distinguished-point variant is what shrinks memory, and this
+                      didactic version does not implement it. Bounded by a
+                      termination limit; reports failure if the limit is hit.
+
+Interval vocabulary: for the inclusive interval [a, b], span = b - a (4096 for the
+fixture set) and the number of candidate exponents = span + 1 (4097). Both are
+reported separately; "width" in the code means span.
 
 Measurement
 -----------
   * group operations: every modular multiplication in the group is counted via a
     global counter (GroupOps). This is the implementation-independent cost metric.
-  * elapsed time: time.perf_counter() around the solve call only.
-  * memory: tracemalloc peak bytes during the solve call only.
+  * elapsed time: time.perf_counter() around an UNTRACED solve call (tracemalloc
+    slows Python several-fold, so it is never active during timing).
+  * memory: tracemalloc peak bytes during a SEPARATE traced solve call, plus the
+    table entry count. Timing and allocation come from different runs.
+  * kangaroo ops are split into tame setup (footprint laying) and wild work.
+Correctness checks are explicit raises, never `assert`, so `python -O` keeps them.
 All fixtures are solved by BOTH methods so the comparison is on the same instances.
 
 Reproducibility
@@ -138,12 +150,37 @@ def _miller_rabin(m: int) -> bool:
 
 
 def verify_group() -> None:
-    assert N < (1 << 16), "group order must fit in 16 bits"
-    assert P == 2 * N + 1, "P must equal 2*N+1"
-    assert _miller_rabin(N), "N must be prime"
-    assert _miller_rabin(P), "P must be prime"
-    assert G != 1 and pow(G, N, P) == 1, "G must lie in the order-N subgroup"
+    if not N < (1 << 16):
+        raise RuntimeError("group order must fit in 16 bits")
+    if P != 2 * N + 1:
+        raise RuntimeError("P must equal 2*N+1")
+    if not _miller_rabin(N):
+        raise RuntimeError("N must be prime")
+    if not _miller_rabin(P):
+        raise RuntimeError("P must be prime")
+    if G == 1 or pow(G, N, P) != 1:
+        raise RuntimeError("G must lie in the order-N subgroup")
     # N prime + G != 1 in the subgroup => order of G is exactly N.
+
+
+def validate_interval(a: int, b: int) -> None:
+    """Reject intervals the methods cannot answer uniquely."""
+    for v in (a, b):
+        if isinstance(v, bool) or not isinstance(v, int):
+            raise TypeError("interval endpoints must be int")
+    if a > b:
+        raise ValueError(f"reversed interval: a={a} > b={b}")
+    if b - a >= N:
+        raise ValueError(
+            f"span {b - a} >= group order {N}: exponent is not unique in [a, b]")
+
+
+def validate_target(h: int) -> None:
+    """Reject h that is not a non-identity-or-identity element of the subgroup."""
+    if isinstance(h, bool) or not isinstance(h, int):
+        raise TypeError("target must be int")
+    if not 1 <= h < P or pow(h, N, P) != 1:
+        raise ValueError("target is not in the order-N subgroup")
 
 
 verify_group()
@@ -161,14 +198,35 @@ class Fixture:
     x: int                  # secret exponent (known answer)
     h: int                  # public element H = G**x
 
+    def __post_init__(self) -> None:
+        validate_interval(self.a, self.b)
+        if self.kind not in ("endpoint-low", "endpoint-high", "interior"):
+            raise ValueError(f"unknown fixture kind: {self.kind!r}")
+        if not self.a <= self.x <= self.b:
+            raise ValueError(f"fixture {self.name} x out of interval")
+        if self.kind == "interior" and not self.a < self.x < self.b:
+            raise ValueError(f"fixture {self.name} is not strictly interior")
+        validate_target(self.h)
+        if self.h != pow(G, self.x, P):
+            raise ValueError(f"fixture {self.name} h != G**x")
+
     @property
     def width(self) -> int:
+        """Span b - a (NOT the candidate count)."""
         return self.b - self.a
+
+    @property
+    def candidates(self) -> int:
+        """Number of candidate exponents in [a, b]: span + 1."""
+        return self.b - self.a + 1
 
 
 def _derive_interior_x(name: str, a: int, b: int) -> int:
     """Secret exponent for an interior fixture: pure function of the seed name."""
+    validate_interval(a, b)
     width = b - a
+    if width < 2:
+        raise ValueError("interior generation needs span >= 2 (a < x < b must exist)")
     digest = hashlib.sha256(f"toy-dlog|{name}|{a}|{b}".encode()).digest()
     # strictly interior: leave both endpoints to the dedicated endpoint fixtures
     span = width - 1
@@ -196,7 +254,6 @@ def _build_fixtures() -> List[Fixture]:
     out: List[Fixture] = []
     for name, kind, forced in specs:
         x = forced if forced is not None else _derive_interior_x(name, a, b)
-        assert a <= x <= b, f"fixture {name} out of interval"
         h = pow(G, x, P)  # uncounted setup
         out.append(Fixture(name=name, a=a, b=b, kind=kind, x=x, h=h))
     return out
@@ -219,12 +276,13 @@ def reproduce_fixture(name: str) -> Fixture:
     the interval, and H are all recomputed deterministically, identical to the
     original run.
     """
-    base = get_fixture(name)
+    base = get_fixture(name)  # KeyError on an unknown name
     if base.kind == "interior":
         x = _derive_interior_x(name, base.a, base.b)
     else:
         x = base.x
-    assert x == base.x, "non-deterministic fixture derivation"
+    if x != base.x:
+        raise RuntimeError("non-deterministic fixture derivation")
     return base
 
 
@@ -241,26 +299,34 @@ class SolveResult:
     group_ops: int
     termination_limit: int
     elapsed_s: float
-    peak_mem_bytes: int
+    peak_mem_bytes: int         # tracemalloc peak, from a separate traced run
     note: str = ""
+    table_entries: int = 0      # entries held in the baby-step / footprint table
+    setup_ops: int = 0          # bsgs: target transform; kangaroo: tame footprint laying
+    search_ops: int = 0         # bsgs: baby+giant steps; kangaroo: wild work
+    span: int = 0               # b - a
+    candidates: int = 0         # b - a + 1
 
 
 # --------------------------------------------------------------------------- #
 # Method 1: Baby-step / Giant-step on the interval.                            #
 # --------------------------------------------------------------------------- #
-def bsgs_interval(h: int, a: int, b: int) -> Tuple[Optional[int], int]:
-    """Return (x, termination_limit). Deterministic; always succeeds when the
-    promise holds. Works on y = x - a in [0, W] via H' = H * G**(-a)."""
+def bsgs_interval(h: int, a: int, b: int) -> Tuple[Optional[int], int, str, Dict[str, int]]:
+    """Return (x, termination_limit, note, stats). Deterministic; always succeeds
+    when the promise holds. Works on y = x - a in [0, span] via H' = H * G**(-a).
+    A returned x is always in [a, b] and verified against h."""
+    validate_interval(a, b)
+    validate_target(h)
     width = b - a
     m = int(math.isqrt(width)) + 1
     termination_limit = m + (width // m) + 2  # max table + giant steps
 
-    # H' = H * G**(-a)
+    start = GroupOps.mul
     g_inv = pow(G, N - 1, P)              # uncounted setup (modular inverse of G)
     g_inv_a = pow(g_inv, a % N, P)        # uncounted setup
     hp = gmul(h, g_inv_a)                 # counted: part of the search transform
+    setup = GroupOps.mul - start
 
-    # Baby steps: table { G**j : j } for j in [0, m)
     table: Dict[int, int] = {}
     cur = 1
     for j in range(m):
@@ -268,17 +334,21 @@ def bsgs_interval(h: int, a: int, b: int) -> Tuple[Optional[int], int]:
             table[cur] = j
         cur = gmul(cur, G)
 
-    # Giant stride factor = G**(-m)
     g_minus_m = pow(g_inv, m % N, P)      # uncounted setup
     gamma = hp
+    found: Optional[int] = None
     for i in range(0, width // m + 1):
         if gamma in table:
             y = i * m + table[gamma]
-            if 0 <= y <= width:
-                x = a + y
-                return x, termination_limit
+            x = a + y
+            if 0 <= y <= width and a <= x <= b and pow(G, x, P) == h:
+                found = x
+                break
         gamma = gmul(gamma, g_minus_m)
-    return None, termination_limit
+    total = GroupOps.mul - start
+    stats = {"table_entries": len(table), "setup_ops": setup,
+             "search_ops": total - setup}
+    return found, termination_limit, "" if found is not None else "not-found", stats
 
 
 # --------------------------------------------------------------------------- #
@@ -304,7 +374,7 @@ def _jump_table(width: int) -> Tuple[List[int], List[int], int, float]:
     return distances, factors, k, mean_jump
 
 
-def kangaroo(h: int, a: int, b: int) -> Tuple[Optional[int], int, str]:
+def kangaroo(h: int, a: int, b: int) -> Tuple[Optional[int], int, str, Dict[str, int]]:
     """Didactic single-table interval kangaroo (Pollard's lambda).
 
     Tame kangaroo starts at exponent b (the top of the interval) and lays
@@ -314,7 +384,10 @@ def kangaroo(h: int, a: int, b: int) -> Tuple[Optional[int], int, str]:
     land on a tame footprint, after which the exponent is recovered and verified.
     Bounded by a termination limit; returns a success flag. Fully deterministic:
     every jump depends only on the current point value."""
+    validate_interval(a, b)
+    validate_target(h)
     width = b - a
+    start = GroupOps.mul
     distances, factors, k, mean_jump = _jump_table(width)
     root = max(1, math.isqrt(width))
     # Tame lays footprints over ~ a few sqrt(W) of exponent beyond b.
@@ -335,6 +408,12 @@ def kangaroo(h: int, a: int, b: int) -> Tuple[Optional[int], int, str]:
         exp += distances[idx]
         footprints.setdefault(pos, exp)
     tame_max_exp = exp
+    tame_ops = GroupOps.mul - start
+    n_fp = len(footprints)
+
+    def _stats() -> Dict[str, int]:
+        return {"table_entries": n_fp, "setup_ops": tame_ops,
+                "search_ops": GroupOps.mul - start - tame_ops}
 
     # Wild kangaroo: start at H, track accumulated distance only.
     pos_w = h
@@ -343,7 +422,7 @@ def kangaroo(h: int, a: int, b: int) -> Tuple[Optional[int], int, str]:
         if pos_w in footprints:
             x = footprints[pos_w] - dist_w
             if a <= x <= b and pow(G, x, P) == h:
-                return x, termination_limit, "collision"
+                return x, termination_limit, "collision", _stats()
         idx = pos_w % k
         pos_w = gmul(pos_w, factors[idx])  # counted
         dist_w += distances[idx]
@@ -354,46 +433,49 @@ def kangaroo(h: int, a: int, b: int) -> Tuple[Optional[int], int, str]:
     if pos_w in footprints:
         x = footprints[pos_w] - dist_w
         if a <= x <= b and pow(G, x, P) == h:
-            return x, termination_limit, "collision"
-    return None, termination_limit, "limit-reached"
+            return x, termination_limit, "collision", _stats()
+    return None, termination_limit, "limit-reached", _stats()
 
 
 # --------------------------------------------------------------------------- #
 # Measured solve harness.                                                      #
 # --------------------------------------------------------------------------- #
-def _measure(fn: Callable[[], Tuple]) -> Tuple[Tuple, int, int, float]:
+def _run(method: str, fx: "Fixture") -> Tuple[Tuple, int]:
     GroupOps.reset()
-    tracemalloc.start()
-    tracemalloc.clear_traces()
-    t0 = time.perf_counter()
-    out = fn()
-    elapsed = time.perf_counter() - t0
-    _, peak = tracemalloc.get_traced_memory()
-    tracemalloc.stop()
-    return out, GroupOps.mul, peak, elapsed
+    if method == "bsgs":
+        out = bsgs_interval(fx.h, fx.a, fx.b)
+    elif method == "kangaroo":
+        out = kangaroo(fx.h, fx.a, fx.b)
+    else:
+        raise ValueError(f"unknown method: {method}")
+    return out, GroupOps.mul
 
 
 def solve(method: str, fx: Fixture) -> SolveResult:
-    if method == "bsgs":
-        out, ops, peak, elapsed = _measure(lambda: bsgs_interval(fx.h, fx.a, fx.b))
-        rec, limit = out
-        note = ""
-    elif method == "kangaroo":
-        out, ops, peak, elapsed = _measure(lambda: kangaroo(fx.h, fx.a, fx.b))
-        rec, limit, note = out
-    else:
+    """Run one trial: an untraced run gives time and ops; a separate traced run
+    gives allocation peak. Both must agree on ops (determinism) or we raise."""
+    if method not in ("bsgs", "kangaroo"):
         raise ValueError(f"unknown method: {method}")
+    t0 = time.perf_counter()
+    out, ops = _run(method, fx)
+    elapsed = time.perf_counter() - t0
+    tracemalloc.start()
+    try:
+        tracemalloc.clear_traces()
+        out2, ops2 = _run(method, fx)
+        _, peak = tracemalloc.get_traced_memory()
+    finally:
+        tracemalloc.stop()
+    if out2 != out or ops2 != ops:
+        raise RuntimeError("traced and untraced runs disagree")
+    rec, limit, note, stats = out
     return SolveResult(
-        method=method,
-        fixture=fx.name,
-        success=(rec == fx.x),
-        recovered=rec,
-        expected=fx.x,
-        group_ops=ops,
-        termination_limit=limit,
-        elapsed_s=round(elapsed, 6),
-        peak_mem_bytes=peak,
-        note=note,
+        method=method, fixture=fx.name,
+        success=(rec == fx.x), recovered=rec, expected=fx.x,
+        group_ops=ops, termination_limit=limit,
+        elapsed_s=round(elapsed, 6), peak_mem_bytes=peak, note=note,
+        table_entries=stats["table_entries"], setup_ops=stats["setup_ops"],
+        search_ops=stats["search_ops"], span=fx.width, candidates=fx.candidates,
     )
 
 
@@ -411,7 +493,8 @@ def run_all(repeat: int = 1) -> List[SolveResult]:
                 r = solve(method, fx)
                 if best is None or r.elapsed_s < best.elapsed_s:
                     best = r
-            assert best is not None
+            if best is None:
+                raise RuntimeError("no result")
             results.append(best)
     return results
 
@@ -421,7 +504,7 @@ def run_all(repeat: int = 1) -> List[SolveResult]:
 # --------------------------------------------------------------------------- #
 def _fmt_table(results: List[SolveResult]) -> str:
     lines = []
-    hdr = f"{'fixture':16} {'kind':14} {'method':9} {'ok':3} {'recov':6} {'exp':6} {'g-ops':7} {'limit':6} {'mem(B)':8} {'time(s)':9} note"
+    hdr = f"{'fixture':16} {'kind':14} {'method':9} {'ok':3} {'recov':6} {'exp':6} {'g-ops':7} {'limit':6} {'mem(B)':8} {'time(s)':9} {'tbl':5} {'setup':6} {'search':6} note"
     lines.append(hdr)
     lines.append("-" * len(hdr))
     by_name = {f.name: f for f in FIXTURES}
@@ -431,7 +514,8 @@ def _fmt_table(results: List[SolveResult]) -> str:
             f"{r.fixture:16} {fx.kind:14} {r.method:9} "
             f"{'Y' if r.success else 'N':3} "
             f"{str(r.recovered):6} {r.expected:<6} {r.group_ops:<7} "
-            f"{r.termination_limit:<6} {r.peak_mem_bytes:<8} {r.elapsed_s:<9} {r.note}"
+            f"{r.termination_limit:<6} {r.peak_mem_bytes:<8} {r.elapsed_s:<9} "
+            f"{r.table_entries:<5} {r.setup_ops:<6} {r.search_ops:<6} {r.note}"
         )
     return "\n".join(lines)
 
@@ -448,7 +532,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     args = ap.parse_args(argv)
 
     if args.fixture is not None:
-        fx = reproduce_fixture(args.fixture)
+        try:
+            fx = reproduce_fixture(args.fixture)
+        except KeyError as exc:
+            print(f"error: {exc.args[0]}", file=sys.stderr)
+            return 2
         results = [solve(m, fx) for m in METHODS]
     else:
         results = run_all(repeat=args.repeat)
@@ -457,12 +545,13 @@ def main(argv: Optional[List[str]] = None) -> int:
         "tool": "toy-comparison / interval discrete-log benchmark",
         "synthetic": True,
         "group": {"P": P, "N": N, "G": G, "order_bits": N.bit_length()},
-        "interval": {"a": FIX_A, "b": FIX_B, "width": FIX_W},
+        "interval": {"a": FIX_A, "b": FIX_B, "span": FIX_W, "candidates": FIX_W + 1},
         "methods": list(METHODS),
         "measurement": {
             "group_ops": "modular multiplications counted in gmul()",
-            "time": "time.perf_counter() around solve only",
-            "memory": "tracemalloc peak bytes around solve only",
+            "time": "perf_counter around an untraced solve (seconds)",
+            "memory": "tracemalloc peak bytes from a separate traced solve; table_entries = O(sqrt(span)) for both methods",
+            "phases": "setup_ops = bsgs target transform / kangaroo tame footprint laying; search_ops = bsgs steps / kangaroo wild work",
         },
     }
     if args.json:
@@ -471,9 +560,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     else:
         print("# Toy interval discrete-log benchmark (SYNTHETIC / educational)")
         print(f"# group: GF({P}) subgroup order N={N} ({N.bit_length()} bits), G={G}")
-        print(f"# interval: [{FIX_A}, {FIX_B}] width {FIX_W}; same instances for both methods")
+        print(f"# interval: [{FIX_A}, {FIX_B}] span {FIX_W}, {FIX_W + 1} candidates; same instances for both methods")
         print(f"# measurement: g-ops = counted modular multiplies; "
-              f"mem = tracemalloc peak; time = perf_counter")
+              f"mem = tracemalloc peak (separate run); time = untraced perf_counter")
         print()
         print(_fmt_table(results))
         n_ok = sum(1 for r in results if r.success)
