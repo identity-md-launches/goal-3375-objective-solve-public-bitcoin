@@ -36,9 +36,9 @@
     "patched_file": {
       "path": "upstream/RCKangaroo.cpp",
       "pristine_sha256": "ef2a2819f33456c52be2a06d9c97db62d8f12e524d3d598b0c9c4a8e2ce805f0",
-      "patched_sha256": "7d0224cc72fd32bc78a7568e671408c705d3935c7470d3d4c3d353ef3b6ce13a",
+      "patched_sha256": "059ba588841d03052d5e1a9914feced58415334930fd2549ef226f71395da39b",
       "patch_file": "patches/0001-candidate-fd-key-sink.patch",
-      "patch_sha256": "f85f253f56564aa2d9dcfb5bbc3b062ac39ae709c4fbab9b97963eb90fe30afd"
+      "patch_sha256": "6a9d95253ddf6b02b9c713a65d5e5c891d95f5f47ad54114313e1f6089ba6372"
     }
   },
   "excluded_from_vendoring": {
@@ -59,6 +59,6 @@
     "RCKangaroo.vcxproj.user": {"upstream_sha256": "b3272c6ec95065c5d293cd256f6f395d1d7b6b8dcac6e49cb1d96806d563593e", "reason": "Visual Studio per-user settings; not needed."}
   },
   "asm_note": "The *.asm files are upstream RCAsm turbo-kernel sources. They are vendored for review/provenance but are NOT consumed by the CMake build, which compiles RCGpuCore.cu. They cannot be assembled without upstream's RCAsm toolchain and are not required for a working (non-turbo) CUDA build.",
-  "patch_summary": "Redirects the recovered key to an inherited --candidate-fd as 32 big-endian bytes, fails closed on any sink error, removes the stdout 'PRIVATE KEY' print and the RESULTS.TXT writer, and requires --candidate-fd before real/main-mode solving. See patches/0001-candidate-fd-key-sink.patch.",
+  "patch_summary": "Redirects the recovered key to an inherited --candidate-fd as 32 big-endian bytes, fails closed on any sink error, removes the stdout 'PRIVATE KEY' print and the RESULTS.TXT writer, requires --candidate-fd before real/main-mode solving, and rejects a candidate fd < 3 (never 0/1/2 stdin/stdout/stderr) so the key sink can never be a standard stream. See patches/0001-candidate-fd-key-sink.patch.",
   "verification": "Vendored upstream file hashes equal the upstream objects at the pinned commit (confirmed during vendoring). SHA256SUMS.txt lists the exact shipped bytes."
 }

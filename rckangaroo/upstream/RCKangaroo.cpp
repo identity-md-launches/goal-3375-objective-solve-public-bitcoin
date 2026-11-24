@@ -27,8 +27,8 @@ int gExitCode = 0;       // process exit code
 // a complete write. No key material is ever logged, even on failure.
 static bool EmitCandidate(const unsigned char* buf, int len)
 {
-	if (gCandidateFd < 0)
-		return false;
+	if (gCandidateFd < 3)
+		return false; // never emit to a standard stream or an invalid fd
 #ifdef _WIN32
 	(void)buf; (void)len;
 	return false; // candidate-fd sink is POSIX-only; fail closed on Windows
@@ -644,9 +644,12 @@ bool ParseCommandLine(int argc, char* argv[])
 			}
 			gCandidateFd = atoi(argv[ci]);
 			ci++;
-			if (gCandidateFd < 0)
+			if (gCandidateFd < 3)
 			{
-				printf("error: invalid value for --candidate-fd option\r\n");
+				// Reject 0/1/2 (stdin/stdout/stderr) and negatives: the key
+				// sink must be a private inherited fd, never a standard stream.
+				printf("error: invalid value for --candidate-fd option (must be >= 3)\r\n");
+				gCandidateFd = -1;
 				return false;
 			}
 		}
@@ -740,9 +743,9 @@ int main(int argc, char* argv[])
 	if (!IsBench && !gGenMode)
 	{
 		printf("\r\nMAIN MODE\r\n\r\n");
-		if (gCandidateFd < 0)
+		if (gCandidateFd < 3)
 		{
-			fprintf(stderr, "FATAL: real/main mode requires --candidate-fd; refusing to run without a private sink\r\n");
+			fprintf(stderr, "FATAL: real/main mode requires a private --candidate-fd (>= 3); refusing to run without a private sink\r\n");
 			gExitCode = 2;
 			goto label_end;
 		}
