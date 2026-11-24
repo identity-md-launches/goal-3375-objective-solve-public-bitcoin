@@ -1,0 +1,19 @@
+{
+  "synthetic": true,
+  "note": "SYNTHETIC regtest fixture; disposable wallets; not mainnet",
+  "network": "regtest",
+  "core_version": "/Satoshi:28.1.0/",
+  "funding_txid": "6435b2586aec07c22052ece5acc5eb7f9b04f2e9555c3b5b9bf320b0a39dada2",
+  "funding_vout": 0,
+  "funding_script_type": "pubkeyhash",
+  "txid": "3da66776a37bc196643da54998b33708e8e89f033e5dced03db78f4f3ce09499",
+  "blockhash": "6dd8a4f318e589cd997abbda9e4b12a6b61a56581721b1d1153ad99a558b3994",
+  "height": 103,
+  "depth": 1,
+  "destination_script_type": "witness_v1_taproot",
+  "destination_script_hex": "51203660e8e261d0dfe597fd6ab918d22b64307cbd61f576265982746a09226e0b4a",
+  "input_sats": 50000000,
+  "paid_sats": 49999000,
+  "fee_sats": 1000,
+  "vsize": 200
+}

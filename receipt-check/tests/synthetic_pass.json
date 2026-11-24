@@ -1,0 +1,50 @@
+{
+ "tx": {
+  "txid": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "vin": [
+   {
+    "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "vout": 0
+   },
+   {
+    "txid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "vout": 1
+   }
+  ],
+  "vout": [
+   {
+    "value_sats": 299000,
+    "script_hex": "512046bfc36cb0a801aa7d19aff5ceffc6735d461e99bebd4c6c7fa3b2fbae2c0a6f"
+   }
+  ]
+ },
+ "prevouts": [
+  {
+   "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "vout": 0,
+   "value_sats": 100000,
+   "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac",
+   "authenticated": true
+  },
+  {
+   "txid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+   "vout": 1,
+   "value_sats": 200000,
+   "script_hex": "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac",
+   "authenticated": true
+  }
+ ],
+ "snapshot": {
+  "address": "1QKBaU6WAeycb3DbKbLBkX7vJiaS8r42Xo",
+  "outpoints": [
+   {
+    "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "vout": 0
+   },
+   {
+    "txid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "vout": 1
+   }
+  ]
+ }
+}
