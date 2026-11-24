@@ -180,7 +180,7 @@ def checked_transaction(record):
     return inputs, outputs
 
 
-def check(doc, mode):
+def _measure_payment(doc, mode):
     if (mode == "regtest" and isinstance(doc, dict) and "schema" not in doc
             and doc.get("network") == "regtest" and doc.get("synthetic") is True):
         raise ValueError("insufficient evidence: legacy regtest receipt lacks raw spend, "
@@ -236,19 +236,22 @@ def check(doc, mode):
     paid, script = outputs[0]
     require(script == dest, "output does not pay recipient script")
     require(paid > 0, "nonpositive payment")
-    fee = total - paid
-    require(fee >= 0, "negative fee")
-    require(fee <= MAX_FEE_SATS, "excessive fee")
-    return {"txid": doc["tx"]["txid"], "input_sum_sats": total, "paid_sats": paid, "fee_sats": fee}
+    return {"txid": doc["tx"]["txid"], "input_sum_sats": total,
+            "paid_sats": paid, "fee_sats": total - paid}
 
 
-def audit(doc, mode="mainnet"):
+def audit(doc, mode="mainnet", *, max_fee_sats=MAX_FEE_SATS):
     result = {"mode": mode, "unspent_status": "NOT ESTABLISHED",
               "confirmation": "NOT ESTABLISHED", "byte_integrity": "FAIL",
               "verdict": "FAIL", "errors": []}
     try:
+        require(type(max_fee_sats) is int and max_fee_sats >= 0,
+                "max_fee_sats must be a nonnegative integer")
+        result["max_fee_sats"] = max_fee_sats
         require(mode in ("mainnet", "synthetic", "regtest"), "invalid audit mode")
-        result.update(check(doc, mode))
+        result.update(_measure_payment(doc, mode))
+        require(result["fee_sats"] >= 0, "negative fee")
+        require(result["fee_sats"] <= max_fee_sats, "excessive fee")
     except ValueError as exc:
         result["errors"].append(str(exc))
         if str(exc).startswith("insufficient evidence:"):
@@ -270,9 +273,20 @@ def reject_constant(value):
     raise ValueError(f"invalid JSON constant: {value}")
 
 
+def parse_fee_cap(value):
+    if not re.fullmatch(r"[0-9]+", value):
+        raise argparse.ArgumentTypeError("expected a nonnegative integer in ASCII decimal digits")
+    try:
+        return int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("fee cap has too many digits") from exc
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mode", choices=("mainnet", "synthetic", "regtest"), default="mainnet")
+    parser.add_argument("--max-fee-sats", type=parse_fee_cap, default=MAX_FEE_SATS,
+                        help="maximum total fee in satoshis, inclusive (default: %(default)s)")
     parser.add_argument("receipt")
     args = parser.parse_args()
     try:
@@ -281,7 +295,7 @@ def main():
     except (OSError, ValueError, RecursionError) as exc:
         print(f"cannot read receipt: {exc}", file=sys.stderr)
         return 2
-    result = audit(doc, args.mode)
+    result = audit(doc, args.mode, max_fee_sats=args.max_fee_sats)
     print(json.dumps(result, indent=2))
     return 0 if result["verdict"] == "PASS" else 1
 

@@ -11,6 +11,7 @@ sys.path.insert(0, str(HERE.parent))
 import audit
 
 FIXTURE = HERE / "synthetic_pass.json"
+REGTEST_FIXTURE = HERE / "regtest_synthetic_pass.json"
 LEGACY = HERE.parents[1] / "regtest-payment" / "receipt.json"
 SOURCE = "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac"
 DEST = "512046bfc36cb0a801aa7d19aff5ceffc6735d461e99bebd4c6c7fa3b2fbae2c0a6f"
@@ -46,6 +47,7 @@ class ReceiptTests(unittest.TestCase):
     def test_known_answer(self):
         result = audit.audit(good(), "synthetic")
         self.assertEqual(result["verdict"], "PASS")
+        self.assertEqual(result["max_fee_sats"], 100_000)
         self.assertEqual(result["txid"], "2b270ba76ebd54a49589fb7611c1f1f0f7205c8ac544586612b9e8d731004c80")
         self.assertEqual([result[k] for k in ("input_sum_sats", "paid_sats", "fee_sats")],
                          [300_000, 299_000, 1_000])
@@ -83,7 +85,7 @@ class ReceiptTests(unittest.TestCase):
             self.rejects(doc, "wrong fixed")
 
     def test_versioned_regtest_known_answer(self):
-        doc = json.loads((HERE / "regtest_synthetic_pass.json").read_text())
+        doc = json.loads(REGTEST_FIXTURE.read_text())
         result = audit.audit(doc, "regtest")
         self.assertEqual(result["verdict"], "PASS")
         self.assertEqual(result["txid"], "0f9ea4b65c18bba209664dd4c229fdd7fd8c48629597bddbd87c30328bf4a7f9")
@@ -91,7 +93,7 @@ class ReceiptTests(unittest.TestCase):
         self.rejects(doc, "network", "mainnet")
         doc["recipient"] = audit.RECIPIENT
         self.rejects(doc, "Taproot address", "regtest")
-        doc["recipient"] = json.loads((HERE / "regtest_synthetic_pass.json").read_text())["recipient"]
+        doc["recipient"] = json.loads(REGTEST_FIXTURE.read_text())["recipient"]
         doc["snapshot"]["address"] = audit.PRIZE_ADDRESS
         self.rejects(doc, "Base58Check", "regtest")
 
@@ -203,6 +205,58 @@ class ReceiptTests(unittest.TestCase):
         ):
             with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
                 audit.parse_transaction(raw)
+
+    def test_generated_fee_cap_boundaries(self):
+        for cap in (0, 999, 100_000, 100_001):
+            for fee in (cap, cap + 1):
+                with self.subTest(cap=cap, fee=fee):
+                    doc = good()
+                    spend(doc, outputs=((300_000 - fee, DEST),))
+                    result = audit.audit(doc, "synthetic", max_fee_sats=cap)
+                    self.assertEqual(result["max_fee_sats"], cap)
+                    self.assertEqual(result["fee_sats"], fee)
+                    self.assertEqual(result["verdict"], "PASS" if fee == cap else "FAIL")
+                    self.assertEqual(result["errors"], [] if fee == cap else ["excessive fee"])
+
+    def test_receipt_cannot_override_caller_cap(self):
+        doc = good()
+        spend(doc, outputs=((199_999, DEST),))
+        baseline = audit.audit(doc, "synthetic")
+        self.assertEqual(baseline["verdict"], "FAIL")
+        self.assertEqual(baseline["fee_sats"], 100_001)
+        self.assertEqual(baseline["max_fee_sats"], 100_000)
+        doc["max_fee_sats"] = 200_000
+        result = audit.audit(doc, "synthetic", max_fee_sats=100_000)
+        self.assertEqual(result["verdict"], "FAIL")
+        self.assertEqual(result["max_fee_sats"], 100_000)
+        self.assertIn("expected object fields", result["errors"][0])
+
+    def test_invalid_api_caps(self):
+        for cap in (True, False, -1, 1000.0, "1000", None):
+            with self.subTest(cap=cap):
+                result = audit.audit(good(), "synthetic", max_fee_sats=cap)
+                self.assertEqual(result["verdict"], "FAIL")
+                self.assertIn("must be a nonnegative integer", result["errors"][0])
+
+    def test_cli_fee_policy(self):
+        cmd = [sys.executable, "-B", str(HERE.parent / "audit.py"), "--mode", "regtest"]
+        for cap, code, verdict in (("999", 1, "FAIL"), ("1000", 0, "PASS"),
+                                   ("100001", 0, "PASS"), ("0", 1, "FAIL")):
+            with self.subTest(cap=cap):
+                result = subprocess.run(cmd + ["--max-fee-sats", cap, str(REGTEST_FIXTURE)],
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode, code, result.stderr)
+                report = json.loads(result.stdout)
+                self.assertEqual(report["verdict"], verdict)
+                self.assertEqual(report["max_fee_sats"], int(cap))
+                self.assertEqual(report["fee_sats"], 1000)
+        for cap in ("", "-1", "-0", "+1", "1.0", "1e3", "1_000", " 1", "1 ", "١", "true"):
+            with self.subTest(cap=cap):
+                result = subprocess.run(cmd + ["--max-fee-sats=" + cap, str(REGTEST_FIXTURE)],
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertIn("nonnegative integer", result.stderr)
+                self.assertEqual(result.stdout, "")
 
     def test_strict_json(self):
         with self.assertRaisesRegex(ValueError, "duplicate JSON member"):
