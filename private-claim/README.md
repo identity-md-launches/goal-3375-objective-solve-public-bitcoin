@@ -1,10 +1,10 @@
 # Bitcoin Puzzle #140 local claim
 
-This component prepares, optionally broadcasts, and independently checks confirmation of a sweep to the fixed recipient. It uses Python 3.10+ on POSIX with standard-library RIPEMD-160 support and an entrant-controlled Bitcoin Core node. The RPC interface was checked against the Bitcoin Core 30.0 documentation. Live regtest integration is pending.
+This component prepares, optionally broadcasts, and independently checks confirmation of a sweep to the fixed recipient. It uses Python 3.10+ on POSIX and an entrant-controlled Bitcoin Core node. RIPEMD-160 uses the platform's `hashlib` when present and falls back to a self-contained implementation in `bitcoin.py`, so no external dependency is required. The RPC interface targets Bitcoin Core 28.1, the version vendored by `regtest-payment/runtime`. Because Core 28.1 does not provide `getdescriptoractivity`, the snapshot reconstructs complete mempool activity for the fixed source script from `getrawmempool` plus `getrawtransaction`: every mempool input is treated as a candidate spend and every mempool output paying the source script as a pending receive. Live regtest integration is exercised end to end by `check_core.py` (see below).
 
 ## Private setup
 
-Use your own fully synced, unpruned Bitcoin Core 30.0 node with a synced transaction index (`txindex=1`). Bind RPC to a numeric loopback address. Use a dedicated machine and trust both the process receiving loopback requests and the node's responses. Core receives the WIF in a signing RPC request. Disable request capture and verbose RPC tracing. Python and Core may retain secrets in process memory. The CLI disables its own core dumps.
+Use your own fully synced, unpruned Bitcoin Core 28.1 node with a synced transaction index (`txindex=1`). Bind RPC to a numeric loopback address. Use a dedicated machine and trust both the process receiving loopback requests and the node's responses. Core receives the WIF in a signing RPC request. Disable request capture and verbose RPC tracing. Python and Core may retain secrets in process memory. The CLI disables its own core dumps.
 
 Supply a candidate stream containing exactly 32 raw big-endian bytes followed by EOF. Supply a separate authentication stream containing ASCII `username:password` followed by EOF, with no newline. Use private files or pipes owned by the entrant. The CLI closes each private descriptor after consumption and on handled failures. The examples name private file paths, which you can replace with your own. Keep those files outside the checkout. A private pipe can avoid writing the candidate to disk.
 
@@ -51,7 +51,15 @@ Only `confirmed` records payment. The verification command checks the raw transa
 python3 -B -m unittest discover -s private-claim -p 'test_*.py' -v
 ```
 
-The tests use an in-process RPC mock with synthetic data. They exercise the transaction checks, failure paths, receipt states, descriptor closure and RPC redaction.
+The tests use an in-process RPC mock with synthetic data. They exercise the transaction checks, failure paths, receipt states, descriptor closure and RPC redaction. The mock models the mempool through `getrawmempool`/`getrawtransaction`, matching the Core 28.1 snapshot path.
+
+## Real-backend acceptance check
+
+`check_core.py` is the real-backend acceptance gate. It runs the offline suite, then starts a fresh, isolated, networkless regtest Core 28.1 node from the hash-verified runtime vendored in `regtest-payment/runtime`, generates disposable cookie auth, and drives the actual `regtest.py`/`claim.py` CLI over loopback HTTP RPC with private descriptors. It proves real Core signing, mempool admission, broadcast, mining and confirmation verification using only the public synthetic scalar, and the fail-closed rejection paths (no funds, fee cap, wrong candidate, missing fee estimate, wrong network). It confirms Core 28.1 lacks `getdescriptoractivity` and that the mempool-scan snapshot still works. It never spends the production key, address or interval and emits no secret. Set `IMD_CORE_EVIDENCE` to a path to capture the public regtest evidence (receipts, raw sweep, block header) for receipt integration.
+
+```sh
+python3 -I -B private-claim/check_core.py
+```
 
 For the next integration episode, start a fresh, isolated regtest node with a synced transaction index and an explicitly supplied RPC endpoint. The fixed synthetic source can be printed without RPC.
 
@@ -77,4 +85,4 @@ python3 -B private-claim/regtest.py --rpc-url http://127.0.0.1:18443 \
   3< /private/entrant/regtest-auth
 ```
 
-Public references include the [Puzzle #140 record](https://lotterypuzzle.org/puzzles/140/), [BIP 350](https://bips.dev/350/), and Bitcoin Core's [descriptor activity](https://bitcoincore.org/en/doc/30.0.0/rpc/blockchain/getdescriptoractivity/), [signing](https://bitcoincore.org/en/doc/30.0.0/rpc/rawtransactions/signrawtransactionwithkey/), and [acceptance](https://bitcoincore.org/en/doc/30.0.0/rpc/rawtransactions/testmempoolaccept/) documentation.
+Public references include the [Puzzle #140 record](https://lotterypuzzle.org/puzzles/140/), [BIP 350](https://bips.dev/350/), and Bitcoin Core 28.1's [raw mempool](https://bitcoincore.org/en/doc/28.0.0/rpc/blockchain/getrawmempool/), [signing](https://bitcoincore.org/en/doc/28.0.0/rpc/rawtransactions/signrawtransactionwithkey/), and [acceptance](https://bitcoincore.org/en/doc/28.0.0/rpc/rawtransactions/testmempoolaccept/) documentation.

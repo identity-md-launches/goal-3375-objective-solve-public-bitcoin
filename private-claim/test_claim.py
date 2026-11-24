@@ -34,7 +34,7 @@ class MockNode:
         self.calls = []
         self.raw = {}
         self.unspents = []
-        self.activity = []
+        self.mempool_txids = []
         self.sequence = 12
         self.dead = set()
         self.mutate = lambda inputs, outputs: (inputs, outputs)
@@ -56,12 +56,19 @@ class MockNode:
                          [(amount, self.claim.source_script)], witness)
         txid = parse_tx(parent).txid
         self.raw[txid] = parent.hex()
-        row = {"txid": txid, "vout": 0, "amount": btc_value(amount)}
         if pending:
-            self.activity.append(dict(row, type="receive"))
+            self.mempool_txids.append(txid)
         else:
-            self.unspents.append(row)
+            self.unspents.append({"txid": txid, "vout": 0, "amount": btc_value(amount)})
         return txid
+
+    def spend_in_mempool(self, txid, vout):
+        # A mempool transaction spending the given source outpoint elsewhere.
+        spend = make_tx([(txid, vout, b"", 0xFFFFFFFF)], [(1, b"\x51")])
+        sid = parse_tx(spend).txid
+        self.raw[sid] = spend.hex()
+        self.mempool_txids.append(sid)
+        return sid
 
     def __call__(self, method, *params):
         self.calls.append(method)
@@ -73,10 +80,8 @@ class MockNode:
             return TIP
         if method == "scantxoutset":
             return {"success": True, "bestblock": TIP, "unspents": self.unspents}
-        if method == "getdescriptoractivity":
-            return {"activity": self.activity}
         if method == "getrawmempool":
-            return {"mempool_sequence": self.sequence}
+            return {"txids": list(self.mempool_txids), "mempool_sequence": self.sequence}
         if method == "gettxout":
             txid, index, include_mempool = params
             assert include_mempool is True
@@ -140,7 +145,11 @@ class ClaimTests(unittest.TestCase):
         self.assertEqual(prod.source, SOURCE)
         self.assertEqual(prod.source_script.hex(), "76a914ffbb35a7bb9bbe16c1aa2534f7ff11d59c8e3d1a88ac")
         self.assertEqual(prod.output_script[:2], b"\x51\x20")
-        self.assertEqual(self.claim.output_script[2:], public_key(2)[1:])
+        # The regtest recipient must encode the identical 32-byte payout program
+        # as the fixed mainnet recipient, so the synthetic path exercises it.
+        program = "46bfc36cb0a801aa7d19aff5ceffc6735d461e99bebd4c6c7fa3b2fbae2c0a6f"
+        self.assertEqual(prod.output_script.hex(), "5120" + program)
+        self.assertEqual(self.claim.output_script, prod.output_script)
         self.assertEqual(public_key(2).hex(),
                          "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5")
         with self.assertRaisesRegex(ClaimError, "checksum"):
@@ -170,7 +179,8 @@ class ClaimTests(unittest.TestCase):
         self.assertEqual(receipt["feeSats"], receipt["vsize"] * 2)
         self.assertEqual(receipt["paymentSats"] + receipt["feeSats"], 200_000)
         self.assertEqual(self.node.calls.count("scantxoutset"), 2)
-        self.assertEqual(self.node.calls.count("getrawtransaction"), 4)
+        # Per snapshot: one mempool-receive tx fetch plus two raw-prevout fetches.
+        self.assertEqual(self.node.calls.count("getrawtransaction"), 6)
         self.assertNotIn("sendrawtransaction", self.node.calls)
 
     def test_broadcast_pending_then_active_chain_verification(self):
@@ -202,12 +212,11 @@ class ClaimTests(unittest.TestCase):
 
     def test_missing_funds(self):
         self.node.unspents.clear()
-        self.node.activity.clear()
+        self.node.mempool_txids.clear()
         self.reject("no spendable")
 
     def test_spent_output_excluded(self):
-        txid = self.node.unspents[0]["txid"]
-        self.node.activity.append({"type": "spend", "prevout_txid": txid, "prevout_vout": 0})
+        self.node.spend_in_mempool(self.node.unspents[0]["txid"], 0)
         self.assertEqual(self.prepare()["inputSats"], 80_000)
 
     def test_stale_unspent(self):
@@ -274,7 +283,7 @@ class ClaimTests(unittest.TestCase):
     def test_integer_amount_and_witness_prevout(self):
         with self.assertRaisesRegex(ClaimError, "invalid BTC amount"):
             sats(Decimal("0.000000001"))
-        raw = bytes.fromhex(self.node.raw[self.node.activity[0]["txid"]])
+        raw = bytes.fromhex(self.node.raw[self.node.mempool_txids[0]])
         tx = parse_tx(raw)
         self.assertTrue(tx.witness)
         self.assertLess(tx.vsize, len(raw))

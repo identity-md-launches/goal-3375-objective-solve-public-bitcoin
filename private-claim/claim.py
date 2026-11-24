@@ -18,7 +18,9 @@ from bitcoin import (
 SOURCE = "1QKBaU6WAeycb3DbKbLBkX7vJiaS8r42Xo"
 PUBKEY = bytes.fromhex("031f6a332d3c5c4f2de2378c012f429cd109ba07d69690c6c701b6bb87860d6640")
 RECIPIENT = "bc1pg6luxm9s4qq65lge4l6ual7xwdw5v85eh675cmrl5we0ht3vpfhswxu0cx"
-SYNTHETIC_RECIPIENT = "bcrt1pccz8l9zpa47k6vz9gphftsrumpw80rjt3nhnefat4symjhrsnmjsgkm3r6"
+# Regtest encoding of the fixed mainnet recipient's exact 32-byte witness program,
+# so the synthetic claim exercises the identical payout script under bcrt.
+SYNTHETIC_RECIPIENT = "bcrt1pg6luxm9s4qq65lge4l6ual7xwdw5v85eh675cmrl5we0ht3vpfhs5hqxhn"
 LOW, HIGH = 2**139, 2**140 - 1
 COIN = 100_000_000
 HEX_ID = re.compile(r"[0-9a-f]{64}")
@@ -128,11 +130,23 @@ class Claim:
         require(scan["success"] is True, "confirmed UTXO scan unavailable")
         tip = scan["bestblock"]
         require(self.rpc("getbestblockhash") == tip, "chain moved during UTXO scan; retry")
-        sequence = self.mempool_sequence()
-        activity = self.rpc("getdescriptoractivity", [], [self.descriptor], True)["activity"]
-        spent = {(row["prevout_txid"], row["prevout_vout"]) for row in activity
-                 if row["type"] == "spend"}
-        pending = [row for row in activity if row["type"] == "receive"]
+        txids, sequence = self.mempool()
+        # Core 28.1 lacks getdescriptoractivity, so reconstruct complete mempool
+        # activity for the fixed source script directly from the raw mempool set:
+        # every mempool input is a candidate spend, every output paying the source
+        # script is a pending receive. Fail closed on any inconsistency.
+        spent = set()
+        pending = []
+        for txid in txids:
+            require(HEX_ID.fullmatch(txid), "invalid mempool transaction id")
+            raw = parse_tx(bytes.fromhex(self.rpc("getrawtransaction", txid, False)))
+            require(raw.txid == txid, "mempool transaction identity mismatch")
+            for parent, index, _, _ in raw.inputs:
+                spent.add((parent, index))
+            for index, (amount, script) in enumerate(raw.outputs):
+                if script == self.source_script:
+                    pending.append({"txid": txid, "vout": index,
+                                    "amount": Decimal(amount) / COIN})
         available = {}
         seen = set()
         for row in scan["unspents"] + pending:
@@ -155,8 +169,12 @@ class Claim:
         require(available and 0 < sum(available.values()) <= MAX_MONEY, "no spendable prize funds")
         return available, tip, sequence
 
+    def mempool(self):
+        result = self.rpc("getrawmempool", False, True)
+        return list(result["txids"]), result["mempool_sequence"]
+
     def mempool_sequence(self):
-        return self.rpc("getrawmempool", False, True)["mempool_sequence"]
+        return self.mempool()[1]
 
     def check_snapshot(self, tip, sequence):
         require(self.mempool_sequence() == sequence and self.rpc("getbestblockhash") == tip,
