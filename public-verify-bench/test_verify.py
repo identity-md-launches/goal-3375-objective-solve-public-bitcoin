@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Deterministic tests for the secp256k1 verifier and fixtures.
 
-Run with: python3 -I -m unittest -v   (from this directory)
+Run with: python3 -B -m unittest -v   (from this directory)
 No third-party deps; standard library only.
 """
 
@@ -10,6 +10,7 @@ import os
 import unittest
 
 import secp256k1_verify as sk
+from verify_vectors import check_nonces
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -19,8 +20,19 @@ class TestCurve(unittest.TestCase):
         self.assertTrue(sk.is_on_curve(sk.G))
 
     def test_order_of_G(self):
-        # n * G == point at infinity.
-        self.assertIs(sk.scalar_mul(sk.N, sk.G), sk.INF)
+        # Left-to-right binary multiplication with the full integer scalar.
+        # The production scalar_mul reduces by N before doing any group work.
+        def unreduced(k):
+            point = sk.INF
+            for bit in bin(k)[2:]:
+                point = sk.point_add(point, point)
+                if bit == "1":
+                    point = sk.point_add(point, sk.G)
+            return point
+
+        self.assertIsNone(unreduced(sk.N))
+        self.assertEqual(unreduced(sk.N - 1), (sk.GX, sk.P - sk.GY))
+        self.assertEqual(unreduced(sk.N + 1), sk.G)
 
     def test_decompress_roundtrip(self):
         priv = 0x1234567890ABCDEF
@@ -37,9 +49,7 @@ class TestSignVerify(unittest.TestCase):
         self.assertTrue(sk.verify(sk.pubkey_point(priv), msg, r, s))
 
     def test_rfc6979_deterministic(self):
-        # Same key+message must give byte-identical signature every time.
-        priv, msg = 0xC0FFEE, b"determinism"
-        self.assertEqual(sk.sign(priv, msg), sk.sign(priv, msg))
+        check_nonces(self)
 
     def test_reject_corrupted_s(self):
         priv, msg = 0xABCDEF, b"tamper"

@@ -1,32 +1,11 @@
 #!/usr/bin/env python3
-"""Repeatable CPU benchmark for secp256k1 ECDSA signature verification.
-
-Measures verification throughput (verifications per second) of a pure
-standard-library secp256k1 verifier against known-answer fixtures.
-
-Protocol:
-  1. Load fixtures (synthetic KAT vectors, see gen_fixtures.py).
-  2. CORRECTNESS GATE (not timed): verify every valid signature must pass, and
-     a corrupted copy of each signature must be rejected. Timing only runs if
-     the gate passes.
-  3. Timed phase: verify the whole workload `repeat` times, record wall time.
-
-Reported: workload size, repeat counts, total verifications, wall time,
-verifications/sec, per-run peak memory (tracemalloc, bytes/KiB) and process
-peak RSS (resource.ru_maxrss, KiB on Linux), and backend name.
-
-Hardware metadata: only emitted if the platform supplied a task descriptor at
-$PVB_TASK_DESCRIPTOR (JSON). Otherwise device fields are reported "unknown";
-this tool does not probe the host for CPU model, core count, etc.
-
-Units: this measures verification throughput in verifications-per-second; it is
-not a secp256k1 key-search metric.
-"""
+"""Measure raw ECDSA verification and affine point addition separately."""
 
 import argparse
 import json
 import os
 import resource
+import sys
 import time
 import tracemalloc
 
@@ -57,34 +36,38 @@ def correctness_gate(vectors):
     """Verify valid sigs accept and corrupted sigs reject. Returns dict."""
     ok_valid = 0
     ok_reject = 0
+    invalid_rejected = 0
     for v in vectors:
+        actual = sk.verify(v["pub"], v["msg"], v["r"], v["s"])
         if not v["valid"]:
+            invalid_rejected += not actual
             continue
-        if sk.verify(v["pub"], v["msg"], v["r"], v["s"]):
+        if actual:
             ok_valid += 1
         # Corrupt s by one; a correct verifier must reject it.
         bad_s = (v["s"] + 1) % sk.N
         if not sk.verify(v["pub"], v["msg"], v["r"], bad_s):
             ok_reject += 1
     total = sum(1 for v in vectors if v["valid"])
-    passed = (ok_valid == total) and (ok_reject == total)
+    invalid = len(vectors) - total
+    passed = total > 0 and ok_valid == ok_reject == total and invalid_rejected == invalid
     return {
         "total_valid_vectors": total,
         "valid_accepted": ok_valid,
         "corrupted_rejected": ok_reject,
+        "invalid_vectors": invalid,
+        "invalid_rejected": invalid_rejected,
         "passed": passed,
     }
 
 
-def timed_run(vectors, repeat):
+def verify_workload(vectors, repeat):
     count = 0
-    t0 = time.perf_counter()
     for _ in range(repeat):
         for v in vectors:
             if sk.verify(v["pub"], v["msg"], v["r"], v["s"]):
                 count += 1
-    wall = time.perf_counter() - t0
-    return count, wall
+    return count
 
 
 def load_task_descriptor():
@@ -109,49 +92,93 @@ def main():
     ap.add_argument("--json-out", default="")
     args = ap.parse_args()
 
-    provenance, vectors = load_fixtures(args.fixtures)
-    if args.limit > 0:
-        vectors = vectors[: args.limit]
-
-    gate = correctness_gate(vectors)
-    if not gate["passed"]:
-        print(json.dumps({"error": "correctness gate failed", "gate": gate}, indent=2))
-        raise SystemExit(1)
-
-    tracemalloc.start()
-    tracemalloc.reset_peak()
-    count, wall = timed_run(vectors, args.repeat)
-    _, peak = tracemalloc.get_traced_memory()
-    tracemalloc.stop()
-    ru_maxrss_kib = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-
-    workload = len(vectors)
-    total_verifs = workload * args.repeat
-    vps = total_verifs / wall if wall > 0 else 0.0
-
-    descriptor = load_task_descriptor()
-    report = {
-        "backend": BACKEND,
-        "data_label": "SYNTHETIC (independently generated KAT fixtures)",
-        "fixture_provenance": provenance,
-        "correctness_gate": gate,
-        "workload_vectors": workload,
-        "repeat_count": args.repeat,
-        "total_verifications": total_verifs,
-        "wall_time_s": round(wall, 6),
-        "verifications_per_second": round(vps, 3),
-        "peak_python_alloc_bytes": peak,
-        "peak_python_alloc_kib": round(peak / 1024, 1),
-        "process_peak_rss_kib": ru_maxrss_kib,
-        "process_peak_rss_unit": "KiB (Linux ru_maxrss)",
-        "hardware_metadata": descriptor if descriptor is not None
-        else {"source": "none", "device_details": "unknown"},
-    }
+    if args.repeat <= 0 or args.limit < 0:
+        ap.error("--repeat must be positive and --limit nonnegative")
+    report = run(args.fixtures, args.repeat, args.limit, load_task_descriptor())
     text = json.dumps(report, indent=2)
     print(text)
     if args.json_out:
         with open(args.json_out, "w") as f:
             f.write(text + "\n")
+
+
+def run(fixtures, repeat, limit=0, descriptor=None):
+    start = time.perf_counter()
+    provenance, vectors = load_fixtures(fixtures)
+    if limit > 0:
+        vectors = vectors[:limit]
+    load_wall = time.perf_counter() - start
+
+    start = time.perf_counter()
+    gate = correctness_gate(vectors)
+    gate_wall = time.perf_counter() - start
+    if not gate["passed"]:
+        print(json.dumps({"error": "correctness gate failed", "gate": gate}, indent=2))
+        raise SystemExit(1)
+
+    if tracemalloc.is_tracing():
+        raise RuntimeError("disable tracemalloc before benchmarking")
+    start = time.perf_counter()
+    count = verify_workload(vectors, repeat)
+    wall = time.perf_counter() - start
+
+    # Affine G + 2G exercises ordinary addition with distinct x coordinates.
+    double = sk.point_add(sk.G, sk.G)
+    additions = 10_000
+    start = time.perf_counter()
+    for _ in range(additions):
+        point = sk.point_add(sk.G, double)
+    addition_wall = time.perf_counter() - start
+    if point != sk.scalar_mul(3, sk.G) or not sk.is_on_curve(point):
+        raise RuntimeError("point-addition workload returned an incorrect point")
+
+    tracemalloc.start()
+    try:
+        start = time.perf_counter()
+        traced_count = verify_workload(vectors, repeat)
+        allocation_wall = time.perf_counter() - start
+        _, peak = tracemalloc.get_traced_memory()
+    finally:
+        tracemalloc.stop()
+
+    expected = gate["total_valid_vectors"] * repeat
+    if count != expected or traced_count != expected:
+        raise RuntimeError("verification workload accepted an unexpected count")
+    rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    if sys.platform == "darwin":
+        rss /= 1024
+    workload = len(vectors)
+    total_verifs = workload * repeat
+
+    return {
+        "backend": BACKEND,
+        "data_label": "SYNTHETIC (baseline signature corpus)",
+        "fixture_provenance": provenance,
+        "correctness_gate": gate,
+        "workload_vectors": workload,
+        "repeat_count": repeat,
+        "total_verifications": total_verifs,
+        "load_wall_time_s": load_wall,
+        "correctness_wall_time_s": gate_wall,
+        "timing_traced": False,
+        "accepted_in_timed_phase": count,
+        "point_addition": {
+            "workload": "affine G + 2G",
+            "total_additions": additions,
+            "wall_time_s": addition_wall,
+            "additions_per_second": additions / addition_wall,
+        },
+        "allocation_wall_time_s": allocation_wall,
+        "allocation_verifications": total_verifs,
+        "wall_time_s": round(wall, 6),
+        "verifications_per_second": round(total_verifs / wall, 3),
+        "peak_python_alloc_bytes": peak,
+        "peak_python_alloc_kib": round(peak / 1024, 1),
+        "process_peak_rss_kib": rss,
+        "process_peak_rss_unit": "KiB (ru_maxrss, process lifetime high-water mark)",
+        "hardware_metadata": descriptor if descriptor is not None
+        else {"source": "none", "device_details": "unknown"},
+    }
 
 
 if __name__ == "__main__":

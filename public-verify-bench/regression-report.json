@@ -1,0 +1,216 @@
+{
+  "component": "ecdsa-regressions",
+  "baseCommit": "0992632e39cd0624c0ead76e9e4ab6f176fb07c5",
+  "files": {
+    "public-verify-bench/README.md": "19e73fc4ab2b01b64042974b880ed6bea55a9d23d9ddc1085629dd5b2ebd5f80",
+    "public-verify-bench/benchmark.py": "e8305d0280338fb7fd17e60a65d096d965cebe30d7bc443e3fb54ca1605fd025",
+    "public-verify-bench/check.py": "7dab30d5791b44dba16e2d1ac2d482acbf3e1b83c6131763441823f17456dfee",
+    "public-verify-bench/fixtures/rfc6979.LICENSE": "3eca9845773d2e5b8cc9d8c119d345f00a4806e4bd660d4a3d6cdf9c0e9d8bb2",
+    "public-verify-bench/fixtures/rfc6979.json": "d705ccb08b2afea49cc14e11c7e530c95317a4c6db483ec5cec9c9dabaa9ebf6",
+    "public-verify-bench/fixtures/wycheproof.LICENSE": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+    "public-verify-bench/fixtures/wycheproof.json": "066fa22dc93a1c19e0329d1713051be38ebaf299640408d6c86f5bf8c5b490f2",
+    "public-verify-bench/test_verify.py": "4214d05b87b9993416f6aab40cbdd062f80a82f730ab2a8c5de46cae16b2cc4d",
+    "public-verify-bench/verify_vectors.py": "131f875417c675ce83314ab22ed263be4d7ad8c8e068a1762bf0adbe73670cad"
+  },
+  "fixtureHashes": {
+    "vectors.json": "b2a93674959ab6938447134b8738aff8385b3d4e3a9d9c10637e5826c7210812",
+    "rfc6979.json": "d705ccb08b2afea49cc14e11c7e530c95317a4c6db483ec5cec9c9dabaa9ebf6",
+    "wycheproof.json": "066fa22dc93a1c19e0329d1713051be38ebaf299640408d6c86f5bf8c5b490f2"
+  },
+  "sources": [
+    {
+      "source": "https://github.com/tlsfuzzer/python-ecdsa/blob/71e3fc7240cf31584fb0e10bd58e2830f2fc5afc/src/ecdsa/test_pyecdsa.py#L1950",
+      "upstreamSha256": "db3a167d1ff102a6a028e147549b7875365969cbb5cd3e09c571ff1c9500056f",
+      "license": "MIT",
+      "licensePath": "public-verify-bench/fixtures/rfc6979.LICENSE"
+    },
+    {
+      "source": "https://github.com/C2SP/wycheproof/blob/65ca494727a52944c204441c860b039e6786b99b/testvectors_v1/ecdsa_secp256k1_sha256_test.json",
+      "upstreamSha256": "43db761c0a2eae71fb0755d355d5130e28ce64a5b07846cf27e7072082597a81",
+      "license": "Apache-2.0",
+      "licensePath": "public-verify-bench/fixtures/wycheproof.LICENSE"
+    },
+    {
+      "source": "https://github.com/bitcoin-core/secp256k1/tree/0cdc758a56360bf58a851fe91085a327ec97685a",
+      "manifest": "secp-oracle/vendor.sha256",
+      "license": "MIT",
+      "licensePath": "secp-oracle/vendor/secp256k1/COPYING"
+    },
+    {
+      "source": "public-verify-bench/fixtures/vectors.json",
+      "license": "CC0-1.0",
+      "licensePath": "public-verify-bench/fixtures/LICENSE"
+    }
+  ],
+  "commands": [
+    {
+      "command": "python3 -I -B public-verify-bench/check.py",
+      "exitCode": 0,
+      "reported": "13 test methods, 559 oracle assertions and full benchmark."
+    },
+    {
+      "command": "sh secp-oracle/check.sh --require-baseline",
+      "exitCode": 0,
+      "reported": "Acceptance subprocess with scoped TMPDIR. 559 assertions, zero discrepancies."
+    },
+    {
+      "command": "python3 -B public-verify-bench/benchmark.py --limit 16 --repeat 2",
+      "exitCode": 0,
+      "reported": "16 fixtures, 32 accepted timed verifications."
+    },
+    {
+      "command": "python3 -I -B - (inline order mutation)",
+      "exitCode": 0,
+      "reported": "Replacing N with N+1 triggered the unreduced test failure while scalar_mul still returned infinity."
+    },
+    {
+      "command": "sha256sum public-verify-bench/fixtures/vectors.json",
+      "exitCode": 0,
+      "reported": "b2a93674959ab6938447134b8738aff8385b3d4e3a9d9c10637e5826c7210812"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "reported": "No tracked whitespace errors."
+    },
+    {
+      "command": "sh secp-oracle/check.sh --require-baseline",
+      "exitCode": 1,
+      "reported": "Initial standalone oracle probe could not create /tmp/tmp.XXXXXXXXXX."
+    },
+    {
+      "command": "python3 -I -B public-verify-bench/check.py",
+      "exitCode": 1,
+      "reported": "Initial acceptance exposed NameError at public-verify-bench/benchmark.py:159."
+    },
+    {
+      "command": "git add -A -- public-verify-bench",
+      "exitCode": 128,
+      "reported": "Read-only .git/index.lock path. Source changes remain in working tree."
+    },
+    {
+      "command": "python3 -I -B public-verify-bench/check.py",
+      "exitCode": 0,
+      "reported": "Schema-repair rerun completed all Python tests, native oracle assertions and benchmark phases."
+    }
+  ],
+  "testsActuallyRun": {
+    "baselineTestMethods": 10,
+    "addedTestMethods": 3,
+    "publishedNonceCases": 6,
+    "wycheproofCases": 23,
+    "wycheproofDerRejections": 6,
+    "wycheproofCasesReachingVerifier": 17,
+    "malformedSec1Cases": 8,
+    "publishedPositiveMutations": 8,
+    "oracleAssertions": 559,
+    "oracleAssertionCounts": {
+      "corpus_integrity": 2,
+      "published": 6,
+      "scalar_bounds": 4,
+      "sec_rejections": 2,
+      "membership": 10,
+      "sec_roundtrips": 20,
+      "fixture_ecdsa": 80,
+      "distance": 48,
+      "baseline_metadata": 3,
+      "baseline_point": 128,
+      "baseline_signature": 128,
+      "baseline_verification": 128
+    },
+    "orderMutationProbe": "passed",
+    "acceptanceUnittestMethods": 13
+  },
+  "measurements": {
+    "platform": "linux, Python 3.12.3",
+    "acceptance_wall_time_s": 41.863951123086736,
+    "oracle_build_and_check_wall_time_s": 2.19096050306689,
+    "oracle_driver_wall_time_s": 0.033014,
+    "benchmark": {
+      "backend": "pure-python-stdlib (int arithmetic, SHA-256/HMAC via hashlib)",
+      "data_label": "SYNTHETIC (baseline signature corpus)",
+      "fixture_provenance": {
+        "label": "SYNTHETIC \u2014 independently generated, not real-world keys",
+        "generator": "gen_fixtures.py",
+        "seed": "public-verify-bench/secp256k1/synthetic-kat/v1",
+        "curve": "secp256k1 (SEC 2 v2 section 2.4.1)",
+        "hash": "SHA-256",
+        "nonce": "RFC 6979 (HMAC-SHA256)",
+        "signature_form": "low-s (BIP62 canonical)",
+        "license": "CC0-1.0 (public domain dedication) \u2014 see fixtures/LICENSE"
+      },
+      "correctness_gate": {
+        "total_valid_vectors": 128,
+        "valid_accepted": 128,
+        "corrupted_rejected": 128,
+        "invalid_vectors": 0,
+        "invalid_rejected": 0,
+        "passed": true
+      },
+      "workload_vectors": 128,
+      "repeat_count": 1,
+      "total_verifications": 128,
+      "load_wall_time_s": 0.01990698103327304,
+      "correctness_wall_time_s": 5.166128086973913,
+      "timing_traced": false,
+      "accepted_in_timed_phase": 128,
+      "point_addition": {
+        "workload": "affine G + 2G",
+        "total_additions": 10000,
+        "wall_time_s": 0.24075249303132296,
+        "additions_per_second": 41536.43384577104
+      },
+      "allocation_wall_time_s": 28.750398845993914,
+      "allocation_verifications": 128,
+      "wall_time_s": 2.420304,
+      "verifications_per_second": 52.886,
+      "peak_python_alloc_bytes": 1308,
+      "peak_python_alloc_kib": 1.3,
+      "process_peak_rss_kib": 20992,
+      "process_peak_rss_unit": "KiB (ru_maxrss, process lifetime high-water mark)",
+      "hardware_metadata": {
+        "source": "none",
+        "device_details": "unknown"
+      }
+    },
+    "priorRunSmoke": {
+      "total_verifications": 32,
+      "wall_time_s": 0.666004,
+      "verifications_per_second": 48.048,
+      "point_addition": {
+        "workload": "affine G + 2G",
+        "total_additions": 10000,
+        "wall_time_s": 0.2451347690075636,
+        "additions_per_second": 40793.8867280449
+      },
+      "allocation_wall_time_s": 7.382833714014851,
+      "peak_python_alloc_bytes": 1252,
+      "process_peak_rss_kib": 17536
+    }
+  },
+  "failures": {
+    "final": [],
+    "resolved": [
+      "Oracle standalone probe: secp-oracle/check.sh:5, mktemp could not create a directory under /tmp. Acceptance supplies a writable component-local TMPDIR.",
+      "Initial acceptance: public-verify-bench/benchmark.py:159, run() referenced CLI-local args. Corrected to use repeat.",
+      "Upload schema rejected extra top-level keys in result.json. Full evidence now lives in this component report."
+    ],
+    "workspace": [
+      ".git/index.lock creation rejected as read-only. Staging and commit unavailable."
+    ]
+  },
+  "unavailablePrerequisites": [
+    "Writable git index for a local source commit. No missing acceptance dependencies."
+  ],
+  "restartCommand": "python3 -I -B public-verify-bench/check.py",
+  "gates": {
+    "baselineFixtureIntegrity": "passed",
+    "realBackendSynthetic": "passed",
+    "publishedVectors": "passed",
+    "mock": "unrun, no mock backend used",
+    "regtest": "unrun, outside this component",
+    "productionSearch": "unrun",
+    "productionClaim": "unrun"
+  },
+  "objectiveStatus": "INCOMPLETE"
+}
